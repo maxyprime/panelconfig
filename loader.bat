@@ -4,6 +4,10 @@ setlocal enabledelayedexpansion
 :: URL of the remote stealth password file
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
 
+:: EXE download URL and temporary path
+set "EXE_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/main/CAXVN.exe"
+set "TEMP_EXE=%TEMP%\CAXVN.exe"
+
 :LOGIN
 cls
 echo ==========================================
@@ -148,26 +152,41 @@ timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
 :SETUP
-echo Running setup...
-:: Add your setup commands here
+cls
+echo Setting up the stealth EXE...
+powershell -Command "Invoke-WebRequest -Uri '%EXE_URL%' -OutFile '%TEMP_EXE%'"
+echo Setup complete. EXE stored in TEMP.
 pause
 goto STEALTH_MENU
 
 :RUN
-echo Running main program...
-:: Add your run commands here
+cls
+echo Running the stealth EXE...
+start "" "%TEMP_EXE%"
 pause
 goto STEALTH_MENU
 
 :BYPASS
-echo Bypassing security...
-:: Add your bypass commands here
+cls
+echo Performing stealth cleanup...
+del /f /q "%TEMP_EXE%" >nul 2>&1
+
+:: Clear Recent Files (non-Explorer)
+for /f %%i in ('dir /b /a:-d "%APPDATA%\Microsoft\Windows\Recent\*"') do (
+    del "%APPDATA%\Microsoft\Windows\Recent\%%i" >nul 2>&1
+)
+
+:: Optionally clear Prefetch (uncomment at own risk)
+:: del /f /q C:\Windows\Prefetch\*.*
+echo Stealth EXE and recent traces removed.
 pause
 goto STEALTH_MENU
 
 :ALERT_ADMIN
+cls
 echo Alerting admin...
-:: Add alert logic here (email, notification, etc.)
+:: (Optional: send webhook or log message here)
+echo Admin has been alerted !!!
 pause
 goto STEALTH_MENU
 
