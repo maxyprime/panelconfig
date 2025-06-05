@@ -204,8 +204,8 @@ echo Running cleanup...
 :: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 
-:: Clear prefetch files
-del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+:: Clear prefetch files related ONLY to CAXVN.exe (original EXE)
+del /q /f "%SystemRoot%\Prefetch\CAXVN-*.pf" >nul 2>&1
 
 :: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
