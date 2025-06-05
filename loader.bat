@@ -1,12 +1,13 @@
 @echo off
 :: ============================
-:: Admin Check
+:: Admin Check (foolproof)
 :: ============================
 fsutil dirty query %systemdrive% >nul 2>&1
 if %errorlevel% NEQ 0 (
     echo =================================================
     echo  ADMIN PRIVILEGES REQUIRED
     echo  Please run this script as Administrator.
+    echo  Right-click this file and choose "Run as Administrator".
     echo =================================================
     pause
     exit /b
@@ -17,12 +18,10 @@ if %errorlevel% NEQ 0 (
 :: ============================
 setlocal enabledelayedexpansion
 
-:: === Read password from config.txt if present ===
-set PASSWORD=
-if exist config.txt (
-    for /f "tokens=1,2 delims==" %%a in (config.txt) do (
-        if "%%a"=="password" set "PASSWORD=%%b"
-    )
+:: Read password from config.txt
+set "PASSWORD="
+for /f "tokens=1,2 delims==" %%a in (config.txt) do (
+    if "%%a"=="password" set "PASSWORD=%%b"
 )
 
 :LOGIN
@@ -36,7 +35,7 @@ echo Enter your password:
 set /p userpass=
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
-if "%userpass%"=="%PASSWORD%" goto STEALTH_AUTH
+if "%userpass%"=="%PASSWORD%" goto STEALTH_MENU
 
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
@@ -121,23 +120,6 @@ echo Running System File Checker...
 sfc /scannow
 pause
 goto OPTIMIZATION_MENU
-
-:STEALTH_AUTH
-cls
-echo ==========================================
-echo         KeyAuth User Login
-echo ==========================================
-set /p username=Enter username:
-set /p license=Enter license key:
-
-powershell -ExecutionPolicy Bypass -File "keyauth_check.ps1" "%username%" "%license%"
-if %errorlevel%==0 (
-    goto STEALTH_MENU
-) else (
-    echo Login failed. Please try again.
-    pause
-    goto LOGIN
-)
 
 :STEALTH_MENU
 cls
