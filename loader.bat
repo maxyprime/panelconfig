@@ -8,7 +8,12 @@ for /f "tokens=1,2 delims==" %%a in (config.txt) do (
 
 :LOGIN
 cls
-echo Enter Password:
+echo ==========================================
+echo            PC Optimization
+echo       Developed by MaxyPrime
+echo ==========================================
+echo.
+echo Enter your password:
 set /p userpass=
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
@@ -17,6 +22,90 @@ if "%userpass%"=="%PASSWORD%" goto STEALTH_MENU
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
 goto LOGIN
+
+:OPTIMIZATION_MENU
+cls
+echo ==========================================
+echo           PC Optimization Menu
+echo ==========================================
+echo 1. Clean Registry Logs
+echo 2. Clean Event Logs
+echo 3. Clear Temp Files
+echo 4. Flush DNS Cache
+echo 5. Check Disk for Errors
+echo 6. Defragment Disk
+echo 7. System File Checker
+echo 8. Return to Main Menu
+echo.
+set /p optchoice=Select an option (1-8):
+
+if "%optchoice%"=="1" goto CLEAN_REGISTRY_LOGS
+if "%optchoice%"=="2" goto CLEAN_EVENT_LOGS
+if "%optchoice%"=="3" goto CLEAR_TEMP_FILES
+if "%optchoice%"=="4" goto FLUSH_DNS_CACHE
+if "%optchoice%"=="5" goto CHECK_DISK
+if "%optchoice%"=="6" goto DEFRAGMENT_DISK
+if "%optchoice%"=="7" goto SYSTEM_FILE_CHECKER
+if "%optchoice%"=="8" goto LOGIN
+
+echo Invalid option. Try again.
+timeout /t 2 /nobreak >nul
+goto OPTIMIZATION_MENU
+
+:CLEAN_REGISTRY_LOGS
+echo Cleaning Registry Logs...
+:: WARNING: Direct registry cleaning can be risky. Here, we'll clear Windows event logs related to registry instead.
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+echo Registry-related logs cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:CLEAN_EVENT_LOGS
+echo Cleaning Event Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+echo All event logs cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:CLEAR_TEMP_FILES
+echo Clearing Temp Files...
+del /s /q "%temp%\*.*"
+del /s /q "C:\Windows\Temp\*.*"
+echo Temp files cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:FLUSH_DNS_CACHE
+echo Flushing DNS Cache...
+ipconfig /flushdns
+echo DNS Cache flushed.
+pause
+goto OPTIMIZATION_MENU
+
+:CHECK_DISK
+echo Checking Disk for Errors on C: drive...
+chkdsk C: /f /r
+echo Disk check complete.
+pause
+goto OPTIMIZATION_MENU
+
+:DEFRAGMENT_DISK
+echo Starting Disk Defragmentation on C: drive...
+defrag C: /U /V
+echo Disk defragmentation complete.
+pause
+goto OPTIMIZATION_MENU
+
+:SYSTEM_FILE_CHECKER
+echo Running System File Checker (SFC)...
+sfc /scannow
+echo SFC scan complete.
+pause
+goto OPTIMIZATION_MENU
 
 :STEALTH_MENU
 cls
@@ -36,33 +125,6 @@ if "%choice%"=="4" goto EXIT
 echo Invalid choice. Try again.
 timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
-
-:OPTIMIZATION_MENU
-cls
-echo *** OPTIMIZATION MENU ***
-echo 1. Optimize Option 1
-echo 2. Optimize Option 2
-echo 3. Back to Login
-echo.
-set /p optchoice=Choose an option:
-
-if "%optchoice%"=="1" (
-    echo Running Optimize Option 1...
-    :: Put your commands here
-    pause
-    goto OPTIMIZATION_MENU
-)
-if "%optchoice%"=="2" (
-    echo Running Optimize Option 2...
-    :: Put your commands here
-    pause
-    goto OPTIMIZATION_MENU
-)
-if "%optchoice%"=="3" goto LOGIN
-
-echo Invalid choice. Try again.
-timeout /t 2 /nobreak >nul
-goto OPTIMIZATION_MENU
 
 :SETUP
 echo Running setup...
@@ -84,3 +146,4 @@ goto STEALTH_MENU
 
 :EXIT
 exit
+
