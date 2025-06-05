@@ -1,8 +1,8 @@
 @echo off
-:: === Check for admin rights ===
->nul 2>&1 (
-    mkdir "%windir%\System32\config\testadmin" && rmdir "%windir%\System32\config\testadmin"
-)
+:: ============================
+:: Admin Check (foolproof)
+:: ============================
+fsutil dirty query %systemdrive% >nul 2>&1
 if %errorlevel% NEQ 0 (
     echo =================================================
     echo  ADMIN PRIVILEGES REQUIRED
@@ -13,6 +13,9 @@ if %errorlevel% NEQ 0 (
     exit /b
 )
 
+:: ============================
+:: Begin Main Code
+:: ============================
 setlocal enabledelayedexpansion
 
 :: === Read password from config.txt ===
@@ -38,18 +41,6 @@ timeout /t 2 /nobreak >nul
 goto LOGIN
 
 :OPTIMIZATION_MENU
-:: === RE-CHECK for Admin inside this menu ===
->nul 2>&1 net session
-if %errorlevel% NEQ 0 (
-    cls
-    echo =================================================
-    echo  ADMIN RIGHTS REQUIRED FOR OPTIMIZATION TO WORK
-    echo  Right-click the file and select "Run as Administrator"
-    echo =================================================
-    pause
-    goto LOGIN
-)
-
 cls
 echo ==========================================
 echo           PC Optimization Menu
@@ -83,7 +74,7 @@ echo Cleaning Registry Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
     wevtutil cl "%%G"
 )
-echo Registry-related logs cleared.
+echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
@@ -92,14 +83,14 @@ echo Cleaning Event Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
     wevtutil cl "%%G"
 )
-echo All event logs cleared.
+echo Event logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAR_TEMP_FILES
 echo Clearing Temp Files...
-del /f /s /q "%temp%\*.*" >nul 2>&1
-del /f /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+del /s /q "%temp%\*.*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 echo Temp files cleared.
 pause
 goto OPTIMIZATION_MENU
@@ -112,20 +103,19 @@ pause
 goto OPTIMIZATION_MENU
 
 :CHECK_DISK
-echo Checking Disk for Errors on C: drive...
-echo This may require a restart to complete if in use.
+echo Checking Disk for Errors...
 chkdsk C: /f /r
 pause
 goto OPTIMIZATION_MENU
 
 :DEFRAGMENT_DISK
-echo Starting Disk Defragmentation on C: drive...
+echo Defragmenting C: drive...
 defrag C: /U /V
 pause
 goto OPTIMIZATION_MENU
 
 :SYSTEM_FILE_CHECKER
-echo Running System File Checker (SFC)...
+echo Running System File Checker...
 sfc /scannow
 pause
 goto OPTIMIZATION_MENU
@@ -142,4 +132,30 @@ set /p choice=Choose an option:
 
 if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
-if "%choice%"=
+if "%choice%"=="3" goto BYPASS
+if "%choice%"=="4" goto EXIT
+
+echo Invalid choice. Try again.
+timeout /t 2 /nobreak >nul
+goto STEALTH_MENU
+
+:SETUP
+echo Running setup...
+:: Add setup logic here
+pause
+goto STEALTH_MENU
+
+:RUN
+echo Running main program...
+:: Add run logic here
+pause
+goto STEALTH_MENU
+
+:BYPASS
+echo Bypassing...
+:: Add bypass logic here
+pause
+goto STEALTH_MENU
+
+:EXIT
+exit
