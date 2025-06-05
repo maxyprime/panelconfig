@@ -1,10 +1,13 @@
 @echo off
-:: === Global Admin Check ===
->nul 2>&1 net session
+:: === Check for admin rights ===
+>nul 2>&1 (
+    mkdir "%windir%\System32\config\testadmin" && rmdir "%windir%\System32\config\testadmin"
+)
 if %errorlevel% NEQ 0 (
     echo =================================================
+    echo  ADMIN PRIVILEGES REQUIRED
     echo  Please run this script as Administrator.
-    echo  Right-click the file and select "Run as Administrator".
+    echo  Right-click this file and choose "Run as Administrator".
     echo =================================================
     pause
     exit /b
