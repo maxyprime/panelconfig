@@ -1,6 +1,4 @@
 @echo off
-setlocal enabledelayedexpansion
-
 :: ============================
 :: Admin Check (foolproof)
 :: ============================
@@ -16,19 +14,15 @@ if %errorlevel% NEQ 0 (
 )
 
 :: ============================
-:: Read stealth password from GitHub
+:: Begin Main Code
 :: ============================
-set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
-set "STEALTH_PASSWORD="
+setlocal enabledelayedexpansion
 
-:: Use PowerShell to download password silently
-for /f "usebackq delims=" %%p in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do (
-    set "STEALTH_PASSWORD=%%p"
+:: === Read password from config.txt ===
+for /f "tokens=1,2 delims==" %%a in (config.txt) do (
+    if "%%a"=="password" set "PASSWORD=%%b"
 )
 
-:: ============================
-:: Login Section
-:: ============================
 :LOGIN
 cls
 echo ==========================================
@@ -40,15 +34,12 @@ echo Enter your password:
 set /p userpass=
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
-if "%userpass%"=="%STEALTH_PASSWORD%" goto STEALTH_MENU
+if "%userpass%"=="%PASSWORD%" goto STEALTH_LOGIN
 
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
 goto LOGIN
 
-:: ============================
-:: Optimization Menu
-:: ============================
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -129,9 +120,22 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: ============================
-:: Stealth Menu
-:: ============================
+:STEALTH_LOGIN
+cls
+echo ==========================================
+echo             *** STEALTH LOGIN ***
+echo          Authorized Personnel Only
+echo ==========================================
+echo.
+echo Enter stealth password:
+set /p stealthpass=
+
+if "%stealthpass%"=="%PASSWORD%" goto STEALTH_MENU
+
+echo Incorrect stealth password. Try again.
+timeout /t 2 /nobreak >nul
+goto STEALTH_LOGIN
+
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -144,14 +148,16 @@ echo.
 echo  1. Setup
 echo  2. Run
 echo  3. Bypass
-echo  4. Exit
+echo  4. Alert the Admin !!!
+echo  5. Exit
 echo.
 set /p choice=Choose an option:
 
 if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
 if "%choice%"=="3" goto BYPASS
-if "%choice%"=="4" goto EXIT
+if "%choice%"=="4" goto ALERT_ADMIN
+if "%choice%"=="5" goto EXIT
 
 echo Invalid choice. Try again.
 timeout /t 2 /nobreak >nul
@@ -159,19 +165,25 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
-:: Add setup logic here
+:: Add your setup commands here
 pause
 goto STEALTH_MENU
 
 :RUN
 echo Running main program...
-:: Add run logic here
+:: Add your run commands here
 pause
 goto STEALTH_MENU
 
 :BYPASS
-echo Bypassing...
-:: Add bypass logic here
+echo Bypassing security...
+:: Add your bypass commands here
+pause
+goto STEALTH_MENU
+
+:ALERT_ADMIN
+echo Alerting admin...
+:: Add your alert code here (email, log, notification, etc.)
 pause
 goto STEALTH_MENU
 
