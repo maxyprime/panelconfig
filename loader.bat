@@ -312,4 +312,4 @@ exit /b
 
 :RemoveDefenderExclusion
 echo Removing Windows Defender exclusion for EXE...
-powershel
+powershell
