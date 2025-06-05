@@ -193,12 +193,10 @@ pause
 goto STEALTH_MENU
 
 :RUN
-echo STEP 1: Stopping Data Usage Service...
-timeout /t 1 >nul
+echo Stopping Data Usage Service...
 sc stop "DataUsageSvc" >nul 2>&1
 
-echo STEP 2: Preparing disguised EXE...
-timeout /t 1 >nul
+echo Preparing disguised EXE...
 
 if not exist "%SETUP_EXE%" (
     echo EXE not found. Please run Setup first.
@@ -208,21 +206,18 @@ if not exist "%SETUP_EXE%" (
 
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
 
-echo STEP 3: Launching payload...
-timeout /t 1 >nul
-start "" /b "%DISGUISED_EXE%"
+echo Launching payload...
+start "" /wait "%DISGUISED_EXE%"
 
-:WAIT_LOOP
-timeout /t 2 >nul
-tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
-if not errorlevel 1 (
-    goto WAIT_LOOP
-)
-
+:: After EXE closes
+echo Cleaning up dropped files...
+del /f /q "%DISGUISED_EXE%" >nul 2>&1
 del /f /q "%~dp0*.imgui" >nul 2>&1
-del /f /q "%~dp0*.*" >nul 2>&1
+del /f /q "%~dp0*.log" >nul 2>&1
+del /f /q "%~dp0*.tmp" >nul 2>&1
+del /f /q "%~dp0*.bak" >nul 2>&1
 
-echo EXE run completed and cleaned up.
+echo EXE execution finished. Returning to menu.
 pause
 goto STEALTH_MENU
 
