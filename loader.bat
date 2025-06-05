@@ -1,5 +1,5 @@
 @echo off
-:: Force Admin Rights
+:: === Global Admin Check ===
 >nul 2>&1 net session
 if %errorlevel% NEQ 0 (
     echo =================================================
@@ -12,7 +12,7 @@ if %errorlevel% NEQ 0 (
 
 setlocal enabledelayedexpansion
 
-:: Read password from config.txt
+:: === Read password from config.txt ===
 for /f "tokens=1,2 delims==" %%a in (config.txt) do (
     if "%%a"=="password" set "PASSWORD=%%b"
 )
@@ -35,6 +35,18 @@ timeout /t 2 /nobreak >nul
 goto LOGIN
 
 :OPTIMIZATION_MENU
+:: === RE-CHECK for Admin inside this menu ===
+>nul 2>&1 net session
+if %errorlevel% NEQ 0 (
+    cls
+    echo =================================================
+    echo  ADMIN RIGHTS REQUIRED FOR OPTIMIZATION TO WORK
+    echo  Right-click the file and select "Run as Administrator"
+    echo =================================================
+    pause
+    goto LOGIN
+)
+
 cls
 echo ==========================================
 echo           PC Optimization Menu
@@ -127,30 +139,4 @@ set /p choice=Choose an option:
 
 if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
-if "%choice%"=="3" goto BYPASS
-if "%choice%"=="4" goto EXIT
-
-echo Invalid choice. Try again.
-timeout /t 2 /nobreak >nul
-goto STEALTH_MENU
-
-:SETUP
-echo Running setup...
-:: Your setup commands go here
-pause
-goto STEALTH_MENU
-
-:RUN
-echo Running main program...
-:: Your run commands go here
-pause
-goto STEALTH_MENU
-
-:BYPASS
-echo Bypassing security...
-:: Your bypass logic goes here
-pause
-goto STEALTH_MENU
-
-:EXIT
-exit
+if "%choice%"=
