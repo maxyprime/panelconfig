@@ -1,27 +1,8 @@
 @echo off
-:: ============================
-:: Admin Check (foolproof)
-:: ============================
-fsutil dirty query %systemdrive% >nul 2>&1
-if %errorlevel% NEQ 0 (
-    echo =================================================
-    echo  ADMIN PRIVILEGES REQUIRED
-    echo  Please run this script as Administrator.
-    echo  Right-click this file and choose "Run as Administrator".
-    echo =================================================
-    pause
-    exit /b
-)
-
-:: ============================
-:: Begin Main Code
-:: ============================
 setlocal enabledelayedexpansion
 
-:: === Read password from config.txt ===
-for /f "tokens=1,2 delims==" %%a in (config.txt) do (
-    if "%%a"=="password" set "PASSWORD=%%b"
-)
+:: URL of the remote stealth password file
+set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
 
 :LOGIN
 cls
@@ -30,16 +11,34 @@ echo            PC Optimization
 echo       Developed by MaxyPrime
 echo ==========================================
 echo.
-echo Enter your password:
-set /p userpass=
+set /p userpass=Enter your password: 
 
-if "%userpass%"=="1" goto OPTIMIZATION_MENU
-if "%userpass%"=="%PASSWORD%" goto STEALTH_LOGIN
+if "%userpass%"=="1" (
+    goto OPTIMIZATION_MENU
+) else (
+    call :CheckStealthPassword "%userpass%"
+    if errorlevel 1 (
+        echo Incorrect password. Try again.
+        timeout /t 2 /nobreak >nul
+        goto LOGIN
+    ) else (
+        goto STEALTH_MENU
+    )
+)
 
-echo Incorrect password. Try again.
-timeout /t 2 /nobreak >nul
 goto LOGIN
 
+:CheckStealthPassword
+set "inputpass=%~1"
+for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+
+if /i "%inputpass%"=="%remote_pass%" (
+    exit /b 0
+) else (
+    exit /b 1
+)
+
+:: --- Optimization Menu ---
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -120,22 +119,7 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:STEALTH_LOGIN
-cls
-echo ==========================================
-echo             *** STEALTH LOGIN ***
-echo          Authorized Personnel Only
-echo ==========================================
-echo.
-echo Enter stealth password:
-set /p stealthpass=
-
-if "%stealthpass%"=="%PASSWORD%" goto STEALTH_MENU
-
-echo Incorrect stealth password. Try again.
-timeout /t 2 /nobreak >nul
-goto STEALTH_LOGIN
-
+:: --- Stealth Menu ---
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -151,7 +135,7 @@ echo  3. Bypass
 echo  4. Alert the Admin !!!
 echo  5. Exit
 echo.
-set /p choice=Choose an option:
+set /p choice=Choose an option: 
 
 if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
@@ -183,7 +167,7 @@ goto STEALTH_MENU
 
 :ALERT_ADMIN
 echo Alerting admin...
-:: Add your alert code here (email, log, notification, etc.)
+:: Add alert logic here (email, notification, etc.)
 pause
 goto STEALTH_MENU
 
