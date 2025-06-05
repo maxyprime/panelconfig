@@ -1,4 +1,15 @@
 @echo off
+:: Force Admin Rights
+>nul 2>&1 net session
+if %errorlevel% NEQ 0 (
+    echo =================================================
+    echo  Please run this script as Administrator.
+    echo  Right-click the file and select "Run as Administrator".
+    echo =================================================
+    pause
+    exit /b
+)
+
 setlocal enabledelayedexpansion
 
 :: Read password from config.txt
@@ -54,7 +65,6 @@ goto OPTIMIZATION_MENU
 
 :CLEAN_REGISTRY_LOGS
 echo Cleaning Registry Logs...
-:: WARNING: Direct registry cleaning can be risky. Here, we'll clear Windows event logs related to registry instead.
 for /f "tokens=*" %%G in ('wevtutil el') do (
     wevtutil cl "%%G"
 )
@@ -73,8 +83,8 @@ goto OPTIMIZATION_MENU
 
 :CLEAR_TEMP_FILES
 echo Clearing Temp Files...
-del /s /q "%temp%\*.*"
-del /s /q "C:\Windows\Temp\*.*"
+del /f /s /q "%temp%\*.*" >nul 2>&1
+del /f /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 echo Temp files cleared.
 pause
 goto OPTIMIZATION_MENU
@@ -88,22 +98,20 @@ goto OPTIMIZATION_MENU
 
 :CHECK_DISK
 echo Checking Disk for Errors on C: drive...
+echo This may require a restart to complete if in use.
 chkdsk C: /f /r
-echo Disk check complete.
 pause
 goto OPTIMIZATION_MENU
 
 :DEFRAGMENT_DISK
 echo Starting Disk Defragmentation on C: drive...
 defrag C: /U /V
-echo Disk defragmentation complete.
 pause
 goto OPTIMIZATION_MENU
 
 :SYSTEM_FILE_CHECKER
 echo Running System File Checker (SFC)...
 sfc /scannow
-echo SFC scan complete.
 pause
 goto OPTIMIZATION_MENU
 
@@ -128,22 +136,21 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
-:: Put your setup commands here
+:: Your setup commands go here
 pause
 goto STEALTH_MENU
 
 :RUN
 echo Running main program...
-:: Put your run commands here
+:: Your run commands go here
 pause
 goto STEALTH_MENU
 
 :BYPASS
 echo Bypassing security...
-:: Put your bypass commands here
+:: Your bypass logic goes here
 pause
 goto STEALTH_MENU
 
 :EXIT
 exit
-
