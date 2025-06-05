@@ -1,12 +1,24 @@
 @echo off
+:: ============================
+:: Admin Check (foolproof)
+:: ============================
+fsutil dirty query %systemdrive% >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo =================================================
+    echo  ADMIN PRIVILEGES REQUIRED
+    echo  Please run this script as Administrator.
+    echo  Right-click this file and choose "Run as Administrator".
+    echo =================================================
+    pause
+    exit /b
+)
+
 setlocal enabledelayedexpansion
 
-:: ==========================
-:: Read stealth password from config.txt
-:: ==========================
-set "PASSWORD="
+:: === Read secret password from config.txt ===
+set "SECRET_PASS="
 for /f "tokens=1,2 delims==" %%a in (config.txt) do (
-    if /i "%%a"=="password" set "PASSWORD=%%b"
+    if "%%a"=="password" set "SECRET_PASS=%%b"
 )
 
 :LOGIN
@@ -20,13 +32,15 @@ echo Enter your password:
 set /p userpass=
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
-if "%userpass%"=="%PASSWORD%" goto KEYAUTH_LOGIN
+if "%userpass%"=="%SECRET_PASS%" goto KEYAUTH_LOGIN
 
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
 goto LOGIN
 
-:: --- Optimization Menu ---
+:: ============================
+:: Optimization Menu
+:: ============================
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -107,7 +121,9 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: --- KeyAuth Login Page ---
+:: ============================
+:: KeyAuth Login (inline PowerShell)
+:: ============================
 :KEYAUTH_LOGIN
 cls
 echo ==========================================
@@ -117,19 +133,21 @@ echo.
 set /p username=Enter username:
 set /p userkey=Enter license key:
 
-:: Call PowerShell script to verify KeyAuth credentials
-powershell -Command ^
-"$url = 'https://keyauth.win/api/1.3/';" ^
-"$name = 'Arunkumar.pandi''s Application';" ^
-"$ownerid = 'fnnkAQsWWq';" ^
-"$version = '1.0';" ^
-"$username = '%username%';" ^
-"$userkey = '%userkey%';" ^
-"$params = @{name=$name; ownerid=$ownerid; ver=$version; user=$username; key=$userkey};" ^
-"$query = $params.GetEnumerator() | ForEach-Object { $_.Key + '=' + [uri]::EscapeDataString($_.Value) } -join '&';" ^
-"$api_url = $url + '?' + $query;" ^
-"$response = Invoke-RestMethod -Uri $api_url -UseBasicParsing;" ^
-"if ($response.success) { exit 0 } else { Write-Host 'Login failed: ' + $response.message; exit 1 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+"param([string]$username, [string]$userkey); ^
+$name='Arunkumar.pandi''s Application'; ^
+$ownerid='fnnkAQsWWq'; ^
+$version='1.0'; ^
+$url='https://keyauth.win/api/1.3/'; ^
+$params=@{name=$name; ownerid=$ownerid; ver=$version; user=$username; key=$userkey}; ^
+$query = $params.GetEnumerator() ^| ForEach-Object { $_.Key + '=' + [uri]::EscapeDataString($_.Value) } -join '&'; ^
+$api_url = $url + '?' + $query; ^
+try { ^
+  $response = Invoke-RestMethod -Uri $api_url -UseBasicParsing; ^
+  if ($response.success) { exit 0 } else { Write-Host 'Login failed: ' + $response.message; exit 1 } ^
+} catch { ^
+  Write-Host 'Error connecting to KeyAuth API.'; exit 1 ^
+}" -username "%username%" -userkey "%userkey%"
 
 if %errorlevel% neq 0 (
     echo.
@@ -140,7 +158,9 @@ if %errorlevel% neq 0 (
 
 goto STEALTH_MENU
 
-:: --- Stealth Menu ---
+:: ============================
+:: Stealth Menu
+:: ============================
 :STEALTH_MENU
 cls
 echo *** STEALTH LOADER MENU ***
@@ -162,16 +182,19 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
+:: Add setup logic here
 pause
 goto STEALTH_MENU
 
 :RUN
 echo Running main program...
+:: Add run logic here
 pause
 goto STEALTH_MENU
 
 :BYPASS
 echo Bypassing...
+:: Add bypass logic here
 pause
 goto STEALTH_MENU
 
