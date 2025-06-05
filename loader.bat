@@ -133,7 +133,7 @@ set /p userkey=Enter license key:
 :: Call inline PowerShell for API login verification
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
 "param([string]$username,[string]$userkey); ^
-$name=\"Arunkumar.pandi's Application\"; ^
+$name=\"Arunkumar.pandi`'s Application\"; ^
 $ownerid='fnnkAQsWWq'; ^
 $version='1.0'; ^
 $url='https://keyauth.win/api/1.3/'; ^
@@ -144,6 +144,7 @@ try { ^
   $response = Invoke-RestMethod -Uri $api_url -UseBasicParsing; ^
   if ($response.success) { exit 0 } else { exit 1 } ^
 } catch { exit 1 }" -username "%username%" -userkey "%userkey%"
+
 if errorlevel 1 (
     echo.
     echo Login failed, please try again.
