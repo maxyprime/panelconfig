@@ -1,9 +1,34 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: URL where the stealth password is stored (raw GitHub link)
-set "STEALTH_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
+:: ============================
+:: Admin Check (foolproof)
+:: ============================
+fsutil dirty query %systemdrive% >nul 2>&1
+if %errorlevel% NEQ 0 (
+    echo =================================================
+    echo  ADMIN PRIVILEGES REQUIRED
+    echo  Please run this script as Administrator.
+    echo  Right-click this file and choose "Run as Administrator".
+    echo =================================================
+    pause
+    exit /b
+)
 
+:: ============================
+:: Read stealth password from GitHub
+:: ============================
+set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
+set "STEALTH_PASSWORD="
+
+:: Use PowerShell to download password silently
+for /f "usebackq delims=" %%p in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do (
+    set "STEALTH_PASSWORD=%%p"
+)
+
+:: ============================
+:: Login Section
+:: ============================
 :LOGIN
 cls
 echo ==========================================
@@ -11,32 +36,19 @@ echo            PC Optimization
 echo       Developed by MaxyPrime
 echo ==========================================
 echo.
-set /p userpass=Enter your password:
+echo Enter your password:
+set /p userpass=
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
-
-:: Download the stealth password from GitHub to a temp file
-set "tempfile=%temp%\stealth_pass.txt"
-powershell -Command "Invoke-WebRequest -Uri '%STEALTH_URL%' -UseBasicParsing -OutFile '%tempfile%'" >nul 2>&1
-
-if not exist "%tempfile%" (
-    echo Failed to fetch stealth password from server.
-    timeout /t 3 /nobreak >nul
-    goto LOGIN
-)
-
-:: Read downloaded stealth password into variable
-set /p stealthpass=<"%tempfile%"
-
-:: Delete temp file
-del "%tempfile%" >nul 2>&1
-
-if "%userpass%"=="%stealthpass%" goto STEALTH_MENU
+if "%userpass%"=="%STEALTH_PASSWORD%" goto STEALTH_MENU
 
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
 goto LOGIN
 
+:: ============================
+:: Optimization Menu
+:: ============================
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -66,15 +78,73 @@ echo Invalid option. Try again.
 timeout /t 2 /nobreak >nul
 goto OPTIMIZATION_MENU
 
-:: (Add your optimization menu commands here...)
+:CLEAN_REGISTRY_LOGS
+echo Cleaning Registry Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+echo Registry logs cleared.
+pause
+goto OPTIMIZATION_MENU
 
+:CLEAN_EVENT_LOGS
+echo Cleaning Event Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G"
+)
+echo Event logs cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:CLEAR_TEMP_FILES
+echo Clearing Temp Files...
+del /s /q "%temp%\*.*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+echo Temp files cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:FLUSH_DNS_CACHE
+echo Flushing DNS Cache...
+ipconfig /flushdns
+echo DNS Cache flushed.
+pause
+goto OPTIMIZATION_MENU
+
+:CHECK_DISK
+echo Checking Disk for Errors...
+chkdsk C: /f /r
+pause
+goto OPTIMIZATION_MENU
+
+:DEFRAGMENT_DISK
+echo Defragmenting C: drive...
+defrag C: /U /V
+pause
+goto OPTIMIZATION_MENU
+
+:SYSTEM_FILE_CHECKER
+echo Running System File Checker...
+sfc /scannow
+pause
+goto OPTIMIZATION_MENU
+
+:: ============================
+:: Stealth Menu
+:: ============================
 :STEALTH_MENU
 cls
-echo *** STEALTH LOADER MENU ***
-echo 1. Setup
-echo 2. Run
-echo 3. Bypass
-echo 4. Exit
+echo  ===========================================
+echo.
+echo             *** STEALTH MENU ***
+echo          Authorized Personnel Only
+echo.
+echo  ===========================================
+echo.
+echo  1. Setup
+echo  2. Run
+echo  3. Bypass
+echo  4. Exit
 echo.
 set /p choice=Choose an option:
 
@@ -89,16 +159,19 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
+:: Add setup logic here
 pause
 goto STEALTH_MENU
 
 :RUN
 echo Running main program...
+:: Add run logic here
 pause
 goto STEALTH_MENU
 
 :BYPASS
 echo Bypassing...
+:: Add bypass logic here
 pause
 goto STEALTH_MENU
 
