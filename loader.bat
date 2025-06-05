@@ -1,6 +1,8 @@
 @echo off
+setlocal enabledelayedexpansion
+
 :: ============================
-:: Admin Check (foolproof)
+:: Admin Privileges Check (foolproof)
 :: ============================
 fsutil dirty query %systemdrive% >nul 2>&1
 if %errorlevel% NEQ 0 (
@@ -13,12 +15,10 @@ if %errorlevel% NEQ 0 (
     exit /b
 )
 
-setlocal enabledelayedexpansion
-
-:: === Read secret password from config.txt ===
-set "SECRET_PASS="
+:: === Read password from config.txt ===
+set "PASSWORD="
 for /f "tokens=1,2 delims==" %%a in (config.txt) do (
-    if "%%a"=="password" set "SECRET_PASS=%%b"
+    if "%%a"=="password" set "PASSWORD=%%b"
 )
 
 :LOGIN
@@ -28,19 +28,15 @@ echo            PC Optimization
 echo       Developed by MaxyPrime
 echo ==========================================
 echo.
-echo Enter your password:
-set /p userpass=
+set /p userpass=Enter your password: 
 
 if "%userpass%"=="1" goto OPTIMIZATION_MENU
-if "%userpass%"=="%SECRET_PASS%" goto KEYAUTH_LOGIN
+if "%userpass%"=="%PASSWORD%" goto KEYAUTH_LOGIN
 
 echo Incorrect password. Try again.
 timeout /t 2 /nobreak >nul
 goto LOGIN
 
-:: ============================
-:: Optimization Menu
-:: ============================
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -70,6 +66,7 @@ echo Invalid option. Try again.
 timeout /t 2 /nobreak >nul
 goto OPTIMIZATION_MENU
 
+:: Optimization Tasks
 :CLEAN_REGISTRY_LOGS
 echo Cleaning Registry Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
@@ -121,46 +118,44 @@ sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: ============================
-:: KeyAuth Login (inline PowerShell)
-:: ============================
+:: ===============================
+:: KeyAuth Login Prompt and Validate
+:: ===============================
 :KEYAUTH_LOGIN
 cls
 echo ==========================================
 echo          KeyAuth User Login
 echo ==========================================
 echo.
-set /p username=Enter username:
-set /p userkey=Enter license key:
+set /p username=Enter username: 
+set /p userkey=Enter license key: 
 
+:: Call inline PowerShell for API login verification
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-"param([string]$username, [string]$userkey); ^
-$name='Arunkumar.pandi''s Application'; ^
+"param([string]$username,[string]$userkey); ^
+$name=\"Arunkumar.pandi's Application\"; ^
 $ownerid='fnnkAQsWWq'; ^
 $version='1.0'; ^
 $url='https://keyauth.win/api/1.3/'; ^
-$params=@{name=$name; ownerid=$ownerid; ver=$version; user=$username; key=$userkey}; ^
+$params=@{name=$name;ownerid=$ownerid;ver=$version;user=$username;key=$userkey}; ^
 $query = $params.GetEnumerator() ^| ForEach-Object { $_.Key + '=' + [uri]::EscapeDataString($_.Value) } -join '&'; ^
 $api_url = $url + '?' + $query; ^
 try { ^
   $response = Invoke-RestMethod -Uri $api_url -UseBasicParsing; ^
-  if ($response.success) { exit 0 } else { Write-Host 'Login failed: ' + $response.message; exit 1 } ^
-} catch { ^
-  Write-Host 'Error connecting to KeyAuth API.'; exit 1 ^
-}" -username "%username%" -userkey "%userkey%"
-
-if %errorlevel% neq 0 (
+  if ($response.success) { exit 0 } else { exit 1 } ^
+} catch { exit 1 }" -username "%username%" -userkey "%userkey%"
+if errorlevel 1 (
     echo.
     echo Login failed, please try again.
     pause
     goto KEYAUTH_LOGIN
+) else (
+    goto STEALTH_MENU
 )
 
-goto STEALTH_MENU
-
-:: ============================
-:: Stealth Menu
-:: ============================
+:: ===============================
+:: Stealth Loader Menu
+:: ===============================
 :STEALTH_MENU
 cls
 echo *** STEALTH LOADER MENU ***
@@ -169,7 +164,7 @@ echo 2. Run
 echo 3. Bypass
 echo 4. Exit
 echo.
-set /p choice=Choose an option:
+set /p choice=Choose an option: 
 
 if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
@@ -182,19 +177,19 @@ goto STEALTH_MENU
 
 :SETUP
 echo Running setup...
-:: Add setup logic here
+:: Add your setup commands here
 pause
 goto STEALTH_MENU
 
 :RUN
 echo Running main program...
-:: Add run logic here
+:: Add your run commands here
 pause
 goto STEALTH_MENU
 
 :BYPASS
-echo Bypassing...
-:: Add bypass logic here
+echo Bypassing security...
+:: Add your bypass commands here
 pause
 goto STEALTH_MENU
 
