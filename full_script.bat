@@ -287,10 +287,11 @@ choice /m "Restart required to fully flush traces. Restart now?"
 if errorlevel 2 goto STEALTH_MENU
 if errorlevel 1 (
     shutdown /r /t 3
-    exit
+    rem Do NOT add 'exit' here — let shutdown kill the batch naturally
 )
 
 goto STEALTH_MENU
+
 
 
 
