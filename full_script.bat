@@ -249,48 +249,59 @@ goto STEALTH_MENU
 :: === Bypass ===
 
 :BYPASS
-:: --- Admin Privilege Check ---
-whoami /groups | find "S-1-5-32-544" > nul
-if %errorlevel% neq 0 (
-    echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
-    pause
-    goto STEALTH_MENU
-)
+echo Starting Bypass - cleanup and restore...
+timeout /t 1 >nul
 
-:: --- Data Usage Service Handling (Robust) ---
-:: Check if DataUsageSvc exists before attempting to start it
-sc query "DataUsageSvc" >nul 2>&1
-if %errorlevel% neq 1060 ( :: 1060 means service does not exist
-    sc start "DataUsageSvc" >nul 2>&1
-)
+echo Starting Data Usage Service...
+sc start "DataUsageSvc" >nul 2>&1
 
-:: --- Enable Audit Logs ---
+echo Enabling audit logs...
 call :ENABLE_AUDIT_LOGS
 
-:: --- Remove Windows Defender Exclusion (Robust) ---
-:: Use Try/Catch and SilentlyContinue to prevent script termination if Defender blocks it.
-powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction SilentlyContinue } Catch { }" >nul 2>&1
+echo Removing Windows Defender exclusion for EXE...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' } catch { }" >nul 2>&1
 
-:: --- Running Cleanup Steps ---
+echo Running cleanup...
+
+:: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+:: Clear prefetch files
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+
+:: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+
+:: Clear event logs
 for /f "tokens=*" %%G in ('wevtutil el') do (
     wevtutil cl "%%G" 2>nul
 )
+
+:: Flush DNS
 ipconfig /flushdns >nul
+
+:: Clear clipboard
 echo off | clip
 
-:: --- Clear WMI Repository Logs ---
+:: WMI Logging Cleanup
+echo Cleaning WMI repository logs...
 winmgmt /salvagerepository >nul 2>&1
 
-:: --- Clean PowerShell History ---
+:: Clean PowerShell traces
 call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
-pause
+echo.
+choice /m "Restart required to fully flush traces. Restart now?"
+if errorlevel 2 goto STEALTH_MENU
+if errorlevel 1 (
+    shutdown /r /t 5
+    timeout /t 6 >nul
+)
+
 goto STEALTH_MENU
+
 
 :: === Exit ===
 
