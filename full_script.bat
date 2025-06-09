@@ -247,20 +247,27 @@ goto STEALTH_MENU
 :BYPASS
 echo DEBUG: Starting Bypass - cleanup and restore...
 
-:: --- UPDATED ADMIN PRIVILEGE CHECK ---
-whoami /groups | find "S-1-5-32-544" > nul
-if %errorlevel% neq 0 (
+:: --- NEW ADMIN PRIVILEGE CHECK (Alternative Method) ---
+:: Attempt to write to a restricted system directory.
+:: If this command succeeds, the user is an administrator.
+:: If it fails, the user is not.
+(echo test > "%SystemRoot%\System32\test_admin_check.tmp") 2>nul
+if exist "%SystemRoot%\System32\test_admin_check.tmp" (
+    del "%SystemRoot%\System32\test_admin_check.tmp" >nul 2>&1
+    echo DEBUG: Admin privileges confirmed by file write test.
+) else (
     echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
     pause
     goto STEALTH_MENU
 )
-echo DEBUG: Admin privileges confirmed via whoami.
 pause
 
 echo DEBUG: Starting Data Usage Service...
 sc start "DataUsageSvc" >nul 2>&1
 if %errorlevel% neq 0 (
     echo DEBUG: ERROR: Failed to start DataUsageSvc. This might be because it's missing, disabled, or already running. Errorlevel: %errorlevel%
+    :: Optionally, you can add a 'goto' here if you want to abort if this service fails.
+    :: For now, we'll let it continue to test the rest of the script.
 ) else (
     echo DEBUG: DataUsageSvc started successfully.
 )
@@ -276,7 +283,6 @@ echo DEBUG: SETUP_EXE path: %SETUP_EXE%
 pause "Press any key to execute PowerShell exclusion removal..."
 
 :: *** CRITICAL SECTION DEBUGGING - THIS IS THE PROBLEM AREA ***
-:: The >nul 2>&1 hides PowerShell's direct output, but the batch script checks its errorlevel.
 powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction Stop } Catch { Write-Host 'PowerShell Removal Error: $_' -ForegroundColor Red; exit 1 }" >nul 2>&1
 if %errorlevel% equ 0 (
     echo DEBUG: POST-POWERSHELL: Defender exclusion removal command completed with ERRORLEVEL 0 (success or handled).
@@ -353,7 +359,6 @@ if %errorlevel% equ 1 (
 )
 
 goto STEALTH_MENU
-
 
 
 :: === Alert Admin Placeholder ===
