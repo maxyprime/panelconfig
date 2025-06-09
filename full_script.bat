@@ -245,54 +245,108 @@ goto STEALTH_MENU
 :: === Bypass ===
 
 :BYPASS
-echo Starting Bypass - cleanup and restore...
+echo DEBUG: Starting Bypass - cleanup and restore...
 
 :: Requires admin permissions
-net session >nul 2>&1
+net session >nul 2>&2
 if %errorlevel% neq 0 (
     echo ERROR: Admin privileges required to perform full cleanup.
     pause
     goto STEALTH_MENU
 )
+echo DEBUG: Admin privileges confirmed.
 
-echo Starting Data Usage Service...
+echo DEBUG: Starting Data Usage Service...
 sc start "DataUsageSvc" >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to start DataUsageSvc (might be already running or service missing).
+pause
 
-echo Enabling audit logs...
+echo DEBUG: Enabling audit logs...
 call :ENABLE_AUDIT_LOGS
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to enable audit logs subroutine.
+pause
 
-echo Removing Windows Defender exclusion for EXE...
-powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' } Catch { }" >nul 2>&1
+echo DEBUG: >>> STEP: ATTEMPTING DEFENDER EXCLUSION REMOVAL <<<
+echo DEBUG: SETUP_EXE path: %SETUP_EXE%
+pause "Press any key to execute PowerShell exclusion removal..."
 
-echo Running cleanup...
+:: *** CRITICAL SECTION DEBUGGING - THIS IS THE PROBLEM AREA ***
+powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction Stop } Catch { Write-Host 'PowerShell Removal Error: $_' -ForegroundColor Red; exit 1 }" >nul 2>&1
+:: IMPORTANT: The >nul 2>&1 above hides PowerShell's output. If PowerShell is printing an error,
+:: it won't show unless you remove >nul 2>&1 or add a debug echo within the Catch.
+:: For now, let's keep it to test if the BATCH script itself is terminated by something else.
 
+echo DEBUG: POST-POWERSHELL: Defender exclusion removal command completed or tried.
+echo DEBUG: Checking ERRORLEVEL from PowerShell: %errorlevel%
+pause "Press any key to continue after PowerShell check..."
+
+echo DEBUG: >>> STEP: PAST DEFENDER EXCLUSION REMOVAL <<<
+echo DEBUG: Running cleanup steps...
+
+echo DEBUG: Deleting RecentDocs registry entries...
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete RecentDocs.
+pause
+
+echo DEBUG: Deleting Prefetch files...
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete Prefetch.
+pause
+
+echo DEBUG: Deleting user temp files...
 del /s /q "%temp%\*.*" >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete user temp files.
+pause
+
+echo DEBUG: Deleting Windows temp files...
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete Windows temp files.
+pause
+
+echo DEBUG: Cleaning all Event Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G" 2>nul
+    wevtutil cl "%%G" >nul 2>&1
 )
+echo DEBUG: Event logs cleared or attempted.
+pause
+
+echo DEBUG: Flushing DNS Cache...
 ipconfig /flushdns >nul
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to flush DNS.
+pause
+
+echo DEBUG: Clearing clipboard...
 echo off | clip
+pause
 
-echo Cleaning WMI repository logs...
+echo DEBUG: Cleaning WMI repository logs...
 winmgmt /salvagerepository >nul 2>&1
+if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to clean WMI repo.
+pause
 
+echo DEBUG: Calling PowerShell History Cleanup...
 call :CLEAN_PS_HISTORY
+if %errorlevel% neq 0 echo DEBUG: ERROR: CLEAN_PS_HISTORY subroutine failed.
+pause
 
-echo Cleanup done. All traces removed.
+echo DEBUG: Cleanup done. All traces removed. Ready for restart prompt.
 
-choice /m "Restart required to fully flush traces. Restart now?"
-if errorlevel 2 goto STEALTH_MENU
-if errorlevel 1 (
-    shutdown /r /t 30
-    echo System will restart in 30 seconds...
-    pause
+choice /m "Restart required to fully flush traces. Restart now?" /c YN
+
+if %errorlevel% equ 1 (
+    echo DEBUG: User chose YES to restart. Initiating system restart in 3 seconds...
+    shutdown /r /t 3
+    pause >nul
+) else if %errorlevel% equ 2 (
+    echo DEBUG: User chose NO to restart. Returning to Stealth Menu.
+    goto STEALTH_MENU
+) else (
+    echo DEBUG: Unexpected input or operation cancelled. Returning to menu.
+    timeout /t 2 /nobreak >nul
+    goto STEALTH_MENU
 )
 
 goto STEALTH_MENU
-
 
 
 
