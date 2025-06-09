@@ -282,8 +282,16 @@ winmgmt /salvagerepository >nul 2>&1
 call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
-pause
+
+choice /m "Restart required to fully flush traces. Restart now?"
+if errorlevel 2 goto STEALTH_MENU
+if errorlevel 1 (
+    shutdown /r /t 3
+    exit
+)
+
 goto STEALTH_MENU
+
 
 
 :: === Alert Admin Placeholder ===
