@@ -34,7 +34,7 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+for /f "usebackq delims=" %%A in (powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()") do set "remote_pass=%%A"
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
@@ -283,13 +283,6 @@ ipconfig /flushdns >nul
 :: Clear clipboard
 echo off | clip
 
-:: Clear WMI repository - WMI Logging Cleanup
-echo Cleaning WMI repository logs...
-winmgmt /salvagerepository >nul 2>&1
-
-:: Clean PowerShell history files and logs
-call :CLEAN_PS_HISTORY
-
 echo Cleanup done. All traces removed.
 pause
 goto STEALTH_MENU
@@ -333,19 +326,4 @@ del "%temp%\delete_me.vbs" >nul 2>&1
 
 exit
 
-:: === PowerShell History Cleanup ===
 
-:CLEAN_PS_HISTORY
-echo Cleaning PowerShell History...
-
-del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
-
-for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
-    findstr /i "CAXVN.exe" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
-    findstr /i "%~nx0" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
-)
-
-wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
-
-echo PowerShell traces cleaned.
-exit /b
