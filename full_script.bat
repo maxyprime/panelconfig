@@ -247,13 +247,12 @@ goto STEALTH_MENU
 :BYPASS
 echo DEBUG: Starting Bypass - cleanup and restore...
 
-:: --- NEW ADMIN PRIVILEGE CHECK (Alternative Method) ---
+:: --- NEW ADMIN PRIVILEGE CHECK (Debugging Handle Error) ---
 :: Attempt to write to a restricted system directory.
-:: If this command succeeds, the user is an administrator.
-:: If it fails, the user is not.
-(echo test > "%SystemRoot%\System32\test_admin_check.tmp") 2>nul
-if exist "%SystemRoot%\System32\test_admin_check.tmp" (
-    del "%SystemRoot%\System32\test_admin_check.tmp" >nul 2>&1
+:: This time, NO REDIRECTION on the 'echo' command to see if the handle error persists.
+(echo test > "%SystemRoot%\System32\test_admin_check_DEBUG.tmp")
+if exist "%SystemRoot%\System32\test_admin_check_DEBUG.tmp" (
+    del "%SystemRoot%\System32\test_admin_check_DEBUG.tmp" >nul 2>&1
     echo DEBUG: Admin privileges confirmed by file write test.
 ) else (
     echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
@@ -266,8 +265,6 @@ echo DEBUG: Starting Data Usage Service...
 sc start "DataUsageSvc" >nul 2>&1
 if %errorlevel% neq 0 (
     echo DEBUG: ERROR: Failed to start DataUsageSvc. This might be because it's missing, disabled, or already running. Errorlevel: %errorlevel%
-    :: Optionally, you can add a 'goto' here if you want to abort if this service fails.
-    :: For now, we'll let it continue to test the rest of the script.
 ) else (
     echo DEBUG: DataUsageSvc started successfully.
 )
@@ -359,7 +356,6 @@ if %errorlevel% equ 1 (
 )
 
 goto STEALTH_MENU
-
 
 :: === Alert Admin Placeholder ===
 
