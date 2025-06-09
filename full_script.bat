@@ -245,113 +245,55 @@ goto STEALTH_MENU
 :: === Bypass ===
 
 :BYPASS
-echo DEBUG: Starting Bypass - cleanup and restore...
-
-:: --- NEW ADMIN PRIVILEGE CHECK (Debugging Handle Error) ---
-:: Attempt to write to a restricted system directory.
-:: This time, NO REDIRECTION on the 'echo' command to see if the handle error persists.
-(echo test > "%SystemRoot%\System32\test_admin_check_DEBUG.tmp")
-if exist "%SystemRoot%\System32\test_admin_check_DEBUG.tmp" (
-    del "%SystemRoot%\System32\test_admin_check_DEBUG.tmp" >nul 2>&1
-    echo DEBUG: Admin privileges confirmed by file write test.
-) else (
+:: --- Admin Privilege Check ---
+whoami /groups | find "S-1-5-32-544" > nul
+if %errorlevel% neq 0 (
     echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
     pause
     goto STEALTH_MENU
 )
-pause
 
-echo DEBUG: Starting Data Usage Service...
-sc start "DataUsageSvc" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo DEBUG: ERROR: Failed to start DataUsageSvc. This might be because it's missing, disabled, or already running. Errorlevel: %errorlevel%
-) else (
-    echo DEBUG: DataUsageSvc started successfully.
+:: --- Data Usage Service Handling ---
+:: Check if DataUsageSvc exists before attempting to start it
+sc query "DataUsageSvc" >nul 2>&1
+if %errorlevel% neq 1060 ( :: 1060 means service does not exist
+    sc start "DataUsageSvc" >nul 2>&1
 )
-pause
 
-echo DEBUG: Enabling audit logs...
+:: --- Enable Audit Logs ---
 call :ENABLE_AUDIT_LOGS
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to enable audit logs subroutine.
-pause
 
-echo DEBUG: >>> STEP: ATTEMPTING DEFENDER EXCLUSION REMOVAL <<<
-echo DEBUG: SETUP_EXE path: %SETUP_EXE%
-pause "Press any key to execute PowerShell exclusion removal..."
+:: --- Remove Windows Defender Exclusion ---
+powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction SilentlyContinue } Catch { }" >nul 2>&1
 
-:: *** CRITICAL SECTION DEBUGGING - THIS IS THE PROBLEM AREA ***
-powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction Stop } Catch { Write-Host 'PowerShell Removal Error: $_' -ForegroundColor Red; exit 1 }" >nul 2>&1
-if %errorlevel% equ 0 (
-    echo DEBUG: POST-POWERSHELL: Defender exclusion removal command completed with ERRORLEVEL 0 (success or handled).
-) else (
-    echo DEBUG: POST-POWERSHELL: Defender exclusion removal command returned non-zero ERRORLEVEL: %errorlevel% (failure).
-    echo DEBUG: If this line is reached, PowerShell reported an error.
-)
-pause "Press any key to continue after PowerShell check..."
-
-echo DEBUG: >>> STEP: PAST DEFENDER EXCLUSION REMOVAL <<<
-echo DEBUG: Running cleanup steps...
-
-echo DEBUG: Deleting RecentDocs registry entries...
+:: --- Cleanup Steps ---
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete RecentDocs.
-pause
-
-echo DEBUG: Deleting Prefetch files...
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete Prefetch.
-pause
-
-echo DEBUG: Deleting user temp files...
 del /s /q "%temp%\*.*" >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete user temp files.
-pause
-
-echo DEBUG: Deleting Windows temp files...
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to delete Windows temp files.
-pause
-
-echo DEBUG: Cleaning all Event Logs...
 for /f "tokens=*" %%G in ('wevtutil el') do (
-    wevtutil cl "%%G" >nul 2>&1
+    wevtutil cl "%%G" 2>nul
 )
-echo DEBUG: Event logs cleared or attempted.
-pause
-
-echo DEBUG: Flushing DNS Cache...
 ipconfig /flushdns >nul
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to flush DNS.
-pause
-
-echo DEBUG: Clearing clipboard...
 echo off | clip
-pause
 
-echo DEBUG: Cleaning WMI repository logs...
+:: --- Clean WMI Repository Logs ---
 winmgmt /salvagerepository >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to clean WMI repo.
-pause
 
-echo DEBUG: Calling PowerShell History Cleanup...
+:: --- Clean PowerShell History ---
 call :CLEAN_PS_HISTORY
-if %errorlevel% neq 0 echo DEBUG: ERROR: CLEAN_PS_HISTORY subroutine failed.
-pause
 
-echo DEBUG: Cleanup done. All traces removed. Ready for restart prompt.
-
+:: --- Restart Prompt ---
 choice /m "Restart required to fully flush traces. Restart now?" /c YN
 
 if %errorlevel% equ 1 (
-    echo DEBUG: User chose YES to restart. Initiating system restart in 3 seconds...
     shutdown /r /t 3
-    pause >nul
+    :: Script will naturally terminate with the OS restart.
+    goto :EOF
 ) else if %errorlevel% equ 2 (
-    echo DEBUG: User chose NO to restart. Returning to Stealth Menu.
     goto STEALTH_MENU
 ) else (
-    echo DEBUG: Unexpected input or operation cancelled. Returning to menu.
-    timeout /t 2 /nobreak >nul
+    :: Fallback for unexpected choice errorlevel (e.g., Ctrl+C)
     goto STEALTH_MENU
 )
 
