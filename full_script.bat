@@ -279,13 +279,17 @@ echo off | clip
 echo Cleaning WMI repository logs...
 winmgmt /salvagerepository >nul 2>&1
 
-call :CLEAN_PS_HISTORY_SAFE
+call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
 choice /m "Restart required to fully flush traces. Restart now?"
-if errorlevel 1 shutdown /r /t 3
+if errorlevel 1 (
+    shutdown /r /t 3
+) else (
+    pause
+    goto STEALTH_MENU
+)
 
-goto STEALTH_MENU
 
 :: === Alert Admin Placeholder ===
 
