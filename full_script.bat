@@ -248,7 +248,7 @@ goto STEALTH_MENU
 echo Starting Bypass - cleanup and restore...
 
 :: Requires admin permissions
-net session >nul 2>&1
+net session >nul 2>&2
 if %errorlevel% neq 0 (
     echo ERROR: Admin privileges required to perform full cleanup.
     pause
@@ -283,14 +283,28 @@ call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
 
-choice /m "Restart required to fully flush traces. Restart now?"
-if errorlevel 2 goto STEALTH_MENU
-if errorlevel 1 (
+choice /m "Restart required to fully flush traces. Restart now?" /c YN
+
+:: Check errorlevel in descending order for robustness with CHOICE
+:: Y = 1, N = 2
+if %errorlevel% equ 1 (
+    echo Initiating system restart in 3 seconds...
     shutdown /r /t 3
-    :: Removed 'exit' here. The script will now remain open until the system restarts.
-    goto :EOF
+    :: After shutdown, the batch script will naturally terminate with the OS.
+    :: No need for 'exit' or 'goto :EOF' here, as the OS will handle termination.
+    :: We can optionally add a pause or timeout, but it will be interrupted by the shutdown.
+    pause >nul
+) else if %errorlevel% equ 2 (
+    goto STEALTH_MENU
+) else (
+    :: Fallback for unexpected choice errorlevel (e.g., Ctrl+C)
+    echo Unexpected input or operation cancelled. Returning to menu.
+    timeout /t 2 /nobreak >nul
+    goto STEALTH_MENU
 )
 
+:: This line should theoretically not be reached if a choice was made,
+:: but is here as a final fallback.
 goto STEALTH_MENU
 
 
