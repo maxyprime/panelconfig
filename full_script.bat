@@ -40,27 +40,21 @@ goto LOGIN
 set "inputpass=%~1"
 set "tempfile=%temp%\_stealthpass.txt"
 
-:: DEBUG
-echo DEBUG: Value of PWSH: %PWSH%
-echo DEBUG: Saving password to %tempfile%
+:: Use START to call pwsh safely with paths containing spaces
+start "" /wait "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim() | Out-File -Encoding ASCII -FilePath '%tempfile%'"
 
-:: Save the PowerShell command as a variable
-set "cmd=%PWSH% -NoProfile -ExecutionPolicy Bypass -Command (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim() > '%tempfile%'"
-
-:: Run it using cmd /c to ensure quotes are handled right
-cmd /c "%cmd%"
-
-:: Read from temp file
+:: Confirm temp file exists
 if not exist "%tempfile%" (
-    echo ERROR: Temp file not created.
+    echo ERROR: Could not retrieve remote password.
     exit /b 1
 )
 
+:: Read the remote password
 set /p remote_pass=<"%tempfile%"
 del "%tempfile%" >nul 2>&1
 
-:: DEBUG
-echo DEBUG: Got remote pass: [%remote_pass%]
+:: Debug
+:: echo [DEBUG] Remote password: %remote_pass%
 
 :: Compare
 if /i "%inputpass%"=="%remote_pass%" (
@@ -68,8 +62,6 @@ if /i "%inputpass%"=="%remote_pass%" (
 ) else (
     exit /b 1
 )
-
-
 
 
 
