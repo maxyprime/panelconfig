@@ -38,13 +38,13 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-set "tempfile=%temp%\pwout.txt"
+set "tempfile=%temp%\_stealthpass.txt"
 
-:: Download password using PowerShell and write to a file
+:: Use PowerShell to fetch remote password and write to a file
 "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command ^
-    "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%tempfile%" 2>nul
+  "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%tempfile%" 2>nul
 
-:: Read downloaded password
+:: Read the downloaded password
 set /p remote_pass=<"%tempfile%"
 del "%tempfile%" >nul 2>&1
 
@@ -54,6 +54,7 @@ if /i "%inputpass%"=="%remote_pass%" (
 ) else (
     exit /b 1
 )
+
 
 
 
