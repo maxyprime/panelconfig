@@ -15,18 +15,11 @@ if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PWSH=%ProgramFiles%\PowerSh
 :LOGIN
 cls
 echo ==========================================
-echo         PC Optimization
+echo            PC Optimization
 echo       Developed by MaxyPrime
 echo ==========================================
 echo.
-
-:: Check if a password was passed as an argument from a loader
-if not "%~1"=="" (
-    set "userpass=%~1"
-    echo Password received from loader.
-) else (
-    set /p userpass=Enter your password: 
-)
+set /p userpass=Enter your password: 
 
 if "%userpass%"=="1" (
     goto OPTIMIZATION_MENU
@@ -45,12 +38,13 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-echo.
-echo DEBUG: Value of PWSH: "%PWSH%"
-echo DEBUG: Attempting to run PowerShell command to get stealth password...
-echo DEBUG: Command: "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"
-pause
-for /f "usebackq delims=" %%A in (`"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+set "tempfile=%temp%\pwout.txt"
+
+"%PWSH%" -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%tempfile%" 2>nul
+
+set /p remote_pass=<"%tempfile%"
+del "%tempfile%" >nul 2>&1
+
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
