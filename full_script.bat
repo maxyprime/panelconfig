@@ -194,24 +194,43 @@ pause
 goto STEALTH_MENU
 
 :RUN
+echo Stopping Data Usage Service...
 sc stop "DataUsageSvc" >nul 2>&1
+
+echo Preparing disguised EXE...
+
 if not exist "%SETUP_EXE%" (
     echo EXE not found. Please run Setup first.
     pause
     goto STEALTH_MENU
 )
-copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
-"%PWSH%" -NoProfile -Command "Start-Process -FilePath '%DISGUISED_EXE%'"
 
+copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
+
+:: Launch the disguised .dat file using PowerShell
+start "" /min "%PWSH%" -WindowStyle Hidden -NoProfile -Command "Start-Process -WindowStyle Hidden -FilePath '%DISGUISED_EXE%'"
+
+echo Waiting for EXE to close...
 :WAIT_LOOP
 timeout /t 2 >nul
 tasklist /FI "IMAGENAME eq CAXVN.exe" | find /I "CAXVN.exe" >nul
-if not errorlevel 1 goto WAIT_LOOP
+if not errorlevel 1 (
+    goto WAIT_LOOP
+)
+
+echo EXE closed.
+
 del /f /q "%~dp0*.imgui" >nul 2>&1
-for %%F in ("%~dp0*.*") do if /I not "%%~nxF"=="%~nx0" del /f /q "%%~fF" >nul 2>&1
+for %%F in ("%~dp0*.*") do (
+    if /I not "%%~nxF"=="%~nx0" (
+        del /f /q "%%~fF" >nul 2>&1
+    )
+)
+
 echo Cleanup completed.
 pause
 goto STEALTH_MENU
+
 
 :BYPASS
 sc start "DataUsageSvc" >nul 2>&1
