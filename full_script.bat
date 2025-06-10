@@ -38,12 +38,13 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-for /f "usebackq delims=" %%A in (`"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+for /f "delims=" %%A in ('""%PWSH%" -Command "(Invoke-WebRequest -Uri ''%STEALTH_PASS_URL%'' -UseBasicParsing).Content.Trim()""') do set "remote_pass=%%A"
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
     exit /b 1
 )
+
 
 :: === PC Optimization Menu ===
 :OPTIMIZATION_MENU
