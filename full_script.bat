@@ -41,12 +41,15 @@ goto LOGIN
 :CheckStealthPassword
 set "inputpass=%~1"
 set "TMPPASS=%temp%\stealth_check.txt"
->%TMPPASS% (
-    "%PWSH%" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
-    "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%TMPPASS%"
-)
 
+:: Run PowerShell to fetch password into a file
+"%PWSH%" -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
+"(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim() | Out-File -Encoding ASCII -FilePath '%TMPPASS%'"
+
+:: Check if file was created
 if not exist "%TMPPASS%" exit /b 1
+
+:: Read and compare
 set /p REMOTE_PASS=<"%TMPPASS%"
 del "%TMPPASS%" >nul 2>&1
 
@@ -55,6 +58,7 @@ if /i "%inputpass%"=="%REMOTE_PASS%" (
 ) else (
     exit /b 1
 )
+
 
 :: === PC Optimization Menu ===
 :OPTIMIZATION_MENU
