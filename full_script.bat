@@ -15,11 +15,18 @@ if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PWSH=%ProgramFiles%\PowerSh
 :LOGIN
 cls
 echo ==========================================
-echo            PC Optimization
+echo         PC Optimization
 echo       Developed by MaxyPrime
 echo ==========================================
 echo.
-set /p userpass=Enter your password: 
+
+:: Check if a password was passed as an argument from a loader
+if not "%~1"=="" (
+    set "userpass=%~1"
+    echo Password received from loader.
+) else (
+    set /p userpass=Enter your password: 
+)
 
 if "%userpass%"=="1" (
     goto OPTIMIZATION_MENU
@@ -49,7 +56,7 @@ if /i "%inputpass%"=="%remote_pass%" (
 :OPTIMIZATION_MENU
 cls
 echo ==========================================
-echo           PC Optimization Menu
+echo         PC Optimization Menu
 echo ==========================================
 echo 1. Clean Registry Logs
 echo 2. Clean Event Logs
@@ -131,8 +138,8 @@ goto OPTIMIZATION_MENU
 cls
 echo ===========================================
 echo.
-echo             *** STEALTH MENU ***
-echo          Authorized Personnel Only
+echo           *** STEALTH MENU ***
+echo         Authorized Personnel Only
 echo.
 echo ===========================================
 echo.
@@ -241,18 +248,27 @@ goto STEALTH_MENU
 
 :: === Bypass ===
 :BYPASS
-echo Starting Bypass - cleanup and restore...
+:: --- Admin Privilege Check ---
+whoami /groups | find "S-1-5-32-544" > nul
+if %errorlevel% neq 0 (
+    echo ERROR: Admin privileges required to perform full cleanup. Please run this script as Administrator.
+    pause
+    goto STEALTH_MENU
+)
 
-echo Starting Data Usage Service...
-sc start "DataUsageSvc" >nul 2>&1
+:: --- Data Usage Service Handling (Robust) ---
+sc query "DataUsageSvc" >nul 2>&1
+if %errorlevel% neq 1060 ( :: 1060 means service does not exist
+    sc start "DataUsageSvc" >nul 2>&1
+)
 
-echo Enabling audit logs...
+:: --- Enable Audit Logs ---
 call :ENABLE_AUDIT_LOGS
 
-echo Removing Windows Defender exclusion for EXE...
-"%PWSH%" -NoProfile -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+:: --- Remove Windows Defender Exclusion (Robust) ---
+"%PWSH%" -NoProfile -Command "Try { Remove-MpPreference -ExclusionPath '%SETUP_EXE%' -ErrorAction SilentlyContinue } Catch { }" >nul 2>&1
 
-echo Running cleanup...
+:: --- Cleanup Steps ---
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
 del /q /f /s "%SystemRoot%\Prefetch\*.*" >nul 2>&1
 del /s /q "%temp%\*.*" >nul 2>&1
@@ -262,6 +278,12 @@ for /f "tokens=*" %%G in ('wevtutil el') do (
 )
 ipconfig /flushdns >nul
 echo off | clip
+
+:: --- Clear WMI Repository Logs ---
+winmgmt /salvagerepository >nul 2>&1
+
+:: --- Clean PowerShell History ---
+call :CLEAN_PS_HISTORY
 
 echo Cleanup done. All traces removed.
 pause
@@ -292,3 +314,13 @@ start /min "" "%temp%\delete_me.vbs"
 timeout /t 2 >nul
 del "%temp%\delete_me.vbs" >nul 2>&1
 exit
+
+:: === PowerShell History Cleanup === (Added if missing from previous copy-paste)
+:CLEAN_PS_HISTORY
+del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
+for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
+    findstr /i "CAXVN.exe" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
+    findstr /i "%~nx0" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
+)
+wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
+exit /b 0
