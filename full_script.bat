@@ -40,16 +40,21 @@ goto LOGIN
 set "inputpass=%~1"
 set "tempfile=%temp%\pwout.txt"
 
-"%PWSH%" -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%tempfile%" 2>nul
+:: Download password using PowerShell and write to a file
+"%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command ^
+    "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()" > "%tempfile%" 2>nul
 
+:: Read downloaded password
 set /p remote_pass=<"%tempfile%"
 del "%tempfile%" >nul 2>&1
 
+:: Compare
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
 ) else (
     exit /b 1
 )
+
 
 
 :: === PC Optimization Menu ===
