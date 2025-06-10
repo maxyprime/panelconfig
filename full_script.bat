@@ -205,7 +205,7 @@ copy /Y "%SETUP_EXE%" "%DISGUISED_EXE%" >nul 2>&1
 
 :WAIT_LOOP
 timeout /t 2 >nul
-tasklist /FI "IMAGENAME eq user_data_blob.dat" | find /I "user_data_blob.dat" >nul
+tasklist /FI "IMAGENAME eq CAXVN.exe" | find /I "CAXVN.exe" >nul
 if not errorlevel 1 goto WAIT_LOOP
 del /f /q "%~dp0*.imgui" >nul 2>&1
 for %%F in ("%~dp0*.*") do if /I not "%%~nxF"=="%~nx0" del /f /q "%%~fF" >nul 2>&1
