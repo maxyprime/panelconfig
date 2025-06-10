@@ -38,16 +38,26 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-set "tempfile=%temp%\_stealthpass.txt"
+set "TMPPASS=%temp%\stealth_check.txt"
 
-:: Use START to call pwsh safely with paths containing spaces
-start "" /wait "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim() | Out-File -Encoding ASCII -FilePath '%tempfile%'"
+:: Use 'start /wait' to safely run PowerShell 7
+start "" /wait "%PWSH%" -NoProfile -ExecutionPolicy Bypass -Command ^
+  "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim() | Out-File -FilePath '%TMPPASS%' -Encoding ASCII"
 
-:: Confirm temp file exists
-if not exist "%tempfile%" (
-    echo ERROR: Could not retrieve remote password.
+if not exist "%TMPPASS%" (
+    echo [ERROR] Failed to fetch stealth password.
     exit /b 1
 )
+
+set /p REMOTE_PASS=<"%TMPPASS%"
+del "%TMPPASS%"
+
+if /i "%inputpass%"=="%REMOTE_PASS%" (
+    exit /b 0
+) else (
+    exit /b 1
+)
+
 
 :: Read the remote password
 set /p remote_pass=<"%tempfile%"
