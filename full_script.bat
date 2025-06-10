@@ -26,13 +26,13 @@ if "%userpass%"=="1" (
     goto OPTIMIZATION_MENU
 ) else (
     call :CheckStealthPassword "%userpass%"
-    if errorlevel 1 (
+    if "!ERRORLEVEL!"=="0" (
+        goto STEALTH_MENU
+    ) else (
         echo.
-        echo [✖] Incorrect password. Try again.
+        echo [✖] Incorrect password or validation failed.
         timeout /t 2 /nobreak >nul
         goto LOGIN
-    ) else (
-        goto STEALTH_MENU
     )
 )
 
@@ -41,11 +41,12 @@ if "%userpass%"=="1" (
 set "inputpass=%~1"
 set "TMPPASS=%temp%\stealth_check.txt"
 
-:: Fetch remote stealth password using hidden PowerShell
+:: Download password with hidden PowerShell
 "%PWSH%" -NoLogo -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command ^
-"[System.Net.ServicePointManager]::SecurityProtocol = 3072; $p=(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); Set-Content -Path '%TMPPASS%' -Value $p"
+"[System.Net.ServicePointManager]::SecurityProtocol = 3072; $p=(Invoke-WebRequest -Uri '%STEALTH_PASS_URL%' -UseBasicParsing).Content.Trim(); Set-Content -Path '%TMPPASS%' -Value $p" >nul 2>&1
 
 if not exist "%TMPPASS%" (
+    echo [!] Could not fetch password from remote. Check internet or GitHub URL.
     exit /b 1
 )
 
@@ -57,6 +58,7 @@ if /i "%inputpass%"=="%REMOTE_PASS%" (
 ) else (
     exit /b 1
 )
+
 
 :: === PC Optimization Menu ===
 :OPTIMIZATION_MENU
